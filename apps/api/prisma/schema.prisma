@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ ENUMS ============
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum SiteStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  PENDING
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISH
+  PENDING
+}
+
+enum ArticleStatus {
+  DRAFT
+  GENERATING
+  READY
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+enum Tone {
+  FRIENDLY
+  FORMAL
+  EDUCATIONAL
+  SALES
+  PROFESSIONAL
+  HUMOROUS
+  INSPIRATIONAL
+  STORYTELLING
+  NEWS
+  REVIEW
+}
+
+enum Length {
+  SHORT
+  MEDIUM
+  LONG
+}
+
+enum ApiProvider {
+  CLAUDE
+  OPENAI
+  GEMINI
+  OPENROUTER
+  DALLE
+  REPLICATE
+}
+
+// ============ MODELS ============
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(EDITOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sites     UserSite[]
+  articles  Article[]
+  schedules Schedule[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Site {
+  id                String     @id @default(cuid())
+  name              String
+  url               String     @unique
+  username          String
+  appPassword       String // Encrypted
+  status            SiteStatus @default(PENDING)
+  defaultCategory   String?
+  defaultAuthor     String?
+  defaultPostStatus PostStatus @default(DRAFT)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  groups    SiteGroupSite[]
+  users     UserSite[]
+  articles  Article[]
+  schedules Schedule[]
+
+  @@index([url])
+  @@index([status])
+}
+
+model SiteGroup {
+  id        String          @id @default(cuid())
+  name      String          @unique
+  createdAt DateTime        @default(now())
+  sites     SiteGroupSite[]
+
+  @@index([name])
+}
+
+model SiteGroupSite {
+  id        String    @id @default(cuid())
+  siteId    String
+  groupId   String
+  site      Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  group     SiteGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, groupId])
+}
+
+model UserSite {
+  id     String @id @default(cuid())
+  userId String
+  siteId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, siteId])
+}
+
+model Article {
+  id            String        @id @default(cuid())
+  title         String
+  content       String        @db.Text
+  excerpt       String?
+  keyword       String
+  tone          Tone
+  length        Length
+  seoKeywords   String[]
+  featuredImage String? // URL or base64
+  wpPostId      String? // WordPress Post ID
+  wpPostUrl     String?
+  status        ArticleStatus @default(DRAFT)
+  errorMessage  String?
+  categories    String[]
+  tags          String[]
+
+  siteId     String
+  site       Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheduleId String?
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+  scheduledAt DateTime?
+
+  @@index([siteId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Schedule {
+  id        String   @id @default(cuid())
+  name      String
+  isActive  Boolean  @default(true)
+  frequency Int // posts per week
+  days      Int[] // 0=Sun, 1=Mon, ...
+  timeStart String // "09:00"
+  timeEnd   String // "17:00"
+  tone      Tone
+  length    Length
+
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  keywords  Keyword[]
+  articles  Article[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  lastRunAt DateTime?
+
+  @@index([siteId])
+  @@index([isActive])
+}
+
+model Keyword {
+  id      String    @id @default(cuid())
+  keyword String
+  isUsed  Boolean   @default(false)
+  usedAt  DateTime?
+
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([scheduleId])
+  @@index([isUsed])
+}
+
+model ApiKey {
+  id         String      @id @default(cuid())
+  name       String
+  provider   ApiProvider
+  key        String // Encrypted
+  model      String?     // Model name for OpenRouter or other providers
+  isActive   Boolean     @default(true)
+  isDefault  Boolean     @default(false) // Use this key for AI generation
+  usageCount Int         @default(0)
+  lastUsedAt DateTime?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([provider])
+  @@index([isActive])
+  @@index([isDefault])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  metadata  Json?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+}

@@ -1,0 +1,29 @@
+{
+  "name": "ai-wp-publisher",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@10.2.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:api": "npm run dev --workspace=api",
+    "dev:web": "npm run dev --workspace=web",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "db:generate": "npm run db:generate --workspace=api",
+    "db:push": "npm run db:push --workspace=api",
+    "db:studio": "npm run db:studio --workspace=api",
+    "db:seed": "npm run db:seed --workspace=api",
+    "clean": "turbo clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

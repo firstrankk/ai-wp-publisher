@@ -1,0 +1,216 @@
+# AI WordPress Publisher - Cursor Rules
+
+You are an expert developer working on "AI WordPress Publisher" - a Next.js application for managing and auto-publishing AI-generated articles to multiple WordPress sites.
+
+## Project Context
+
+- **Purpose**: Manage 500+ WordPress sites, auto-generate articles with AI, create featured images, and schedule publishing
+- **Scale**: ~1,500 articles per week
+- **Users**: Admin, Editor, Viewer roles
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript (strict mode)
+- **Database**: PostgreSQL with Prisma ORM
+- **Queue**: BullMQ with Redis
+- **Auth**: NextAuth.js
+- **UI**: Shadcn/ui + Tailwind CSS
+- **State**: React Query + Zustand
+- **AI**: Claude API (Anthropic)
+- **Image**: Sharp (text overlay on gradients)
+
+## Code Style Guidelines
+
+### TypeScript
+- Always use strict TypeScript
+- Define interfaces/types for all data structures
+- Use Zod for runtime validation
+- Avoid `any` type
+
+### Next.js
+- Use App Router conventions
+- Server Components by default
+- Use `'use client'` only when necessary
+- API routes in `src/app/api/`
+- Use Route Handlers (not API Routes from Pages)
+
+### Database
+- Use Prisma for all database operations
+- Always use transactions for multi-step operations
+- Use `cuid()` for primary keys
+- Encrypt sensitive data (passwords, API keys)
+
+### API Responses
+```typescript
+// Success
+{ success: true, data: {...} }
+
+// Error
+{ success: false, error: "Error message" }
+
+// List with pagination
+{
+  success: true,
+  data: [...],
+  pagination: { page, limit, total, totalPages }
+}
+```
+
+### Components
+- Use functional components with hooks
+- Use Shadcn/ui components from `@/components/ui`
+- Keep components small and focused
+- Use React Query for data fetching
+
+### File Naming
+- Components: PascalCase (`SiteForm.tsx`)
+- Utilities: camelCase (`formatDate.ts`)
+- Types: PascalCase (`Site.ts`)
+- API routes: `route.ts`
+
+## Key Patterns
+
+### Authentication Check
+```typescript
+const session = await auth();
+if (!session) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
+```
+
+### Role-based Access
+```typescript
+if (session.user.role !== 'ADMIN') {
+  return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+}
+```
+
+### Site Permission Check (for Editor)
+```typescript
+const hasAccess = await prisma.userSite.findFirst({
+  where: { userId: session.user.id, siteId: id }
+});
+if (!hasAccess && session.user.role !== 'ADMIN') {
+  return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+}
+```
+
+### Encryption
+```typescript
+import { encrypt, decrypt } from '@/lib/crypto';
+
+// Store
+const encrypted = encrypt(plainPassword);
+
+// Retrieve
+const plain = decrypt(encryptedPassword);
+```
+
+### Queue Job
+```typescript
+import { articleQueue } from '@/lib/queue';
+
+await articleQueue.add('generate', { articleId: id }, {
+  attempts: 3,
+  backoff: { type: 'exponential', delay: 5000 }
+});
+```
+
+## Important Business Rules
+
+1. **Site Management**
+   - URL must be unique
+   - Application Password must be encrypted
+   - Test connection before saving
+
+2. **Article Generation**
+   - Always use keyword from pool (for scheduled)
+   - Mark keyword as used after generation
+   - Retry up to 3 times on failure
+
+3. **Scheduling**
+   - Respect time range (don't post outside hours)
+   - Randomize post time within range
+   - Skip if no unused keywords available
+
+4. **Permissions**
+   - Admin: Full access
+   - Editor: Only assigned sites
+   - Viewer: Read only
+
+## Database Relations
+
+```
+User -< UserSite >- Site
+Site -< Article
+Site -< Schedule -< ScheduleKeyword
+Article -> Schedule (optional)
+```
+
+## API Endpoints Reference
+
+### Sites
+- `GET /api/sites` - List (filtered by permission)
+- `POST /api/sites` - Create (Admin)
+- `GET /api/sites/:id` - Detail
+- `PUT /api/sites/:id` - Update
+- `DELETE /api/sites/:id` - Soft delete
+- `POST /api/sites/:id/test` - Test connection
+
+### Articles
+- `GET /api/articles` - List
+- `POST /api/articles` - Create
+- `POST /api/articles/:id/generate` - Generate with AI
+- `POST /api/articles/:id/generate-image` - Generate image
+- `POST /api/articles/:id/publish` - Publish to WordPress
+
+### Schedules
+- `GET /api/schedules` - List
+- `POST /api/schedules` - Create
+- `POST /api/schedules/:id/pause` - Pause
+- `POST /api/schedules/:id/resume` - Resume
+- `POST /api/schedules/:id/keywords` - Add keywords
+
+## Common Tasks
+
+### Add New Feature
+1. Update Prisma schema if needed
+2. Run `npx prisma migrate dev`
+3. Create API route
+4. Create React Query hook
+5. Create UI components
+6. Add to navigation if needed
+
+### Add New API Endpoint
+1. Create route file in `src/app/api/`
+2. Add auth check
+3. Add permission check
+4. Validate input with Zod
+5. Implement business logic
+6. Return standardized response
+
+### Add New Component
+1. Create in appropriate folder under `src/components/`
+2. Use Shadcn/ui primitives
+3. Make it type-safe
+4. Add loading/error states
+
+## Do NOT
+
+- Do NOT use `pages/` directory (use App Router)
+- Do NOT store plain passwords or API keys
+- Do NOT skip authentication/authorization
+- Do NOT use `any` type
+- Do NOT make direct database queries in components
+- Do NOT hardcode API URLs
+
+## Testing Checklist
+
+- [ ] Auth works correctly
+- [ ] Role permissions enforced
+- [ ] Site assignment respected
+- [ ] Encryption working
+- [ ] Queue jobs processing
+- [ ] Error handling complete
+- [ ] Loading states shown
