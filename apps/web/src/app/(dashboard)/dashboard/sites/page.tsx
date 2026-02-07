@@ -110,7 +110,6 @@ export default function SitesPage() {
                 <TableHead>Site</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Articles</TableHead>
-                <TableHead>Schedules</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="w-[100px]">Actions</TableHead>
               </TableRow>
@@ -118,7 +117,7 @@ export default function SitesPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={5} className="text-center py-8">
                     <div className="flex justify-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-2 border-t-transparent" style={{ borderColor: '#2563eb', borderTopColor: 'transparent' }} />
                     </div>
@@ -126,7 +125,7 @@ export default function SitesPage() {
                 </TableRow>
               ) : data?.data?.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8" style={{ color: '#9ca3af' }}>
+                  <TableCell colSpan={5} className="text-center py-8" style={{ color: '#9ca3af' }}>
                     No sites found
                   </TableCell>
                 </TableRow>
@@ -146,7 +145,6 @@ export default function SitesPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(site.status)}</TableCell>
                     <TableCell style={{ color: '#4b5563' }}>{site._count?.articles || 0}</TableCell>
-                    <TableCell style={{ color: '#4b5563' }}>{site._count?.schedules || 0}</TableCell>
                     <TableCell style={{ color: '#6b7280' }}>
                       {formatDate(site.createdAt)}
                     </TableCell>

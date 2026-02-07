@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Globe,
   FileText,
-  Calendar,
   Key,
   Users,
   Settings,
@@ -26,7 +25,6 @@ const navigation = [
   { name: 'Sites', href: '/dashboard/sites', icon: Globe, color: '#10b981' },          // emerald
   { name: 'Articles', href: '/dashboard/articles', icon: FileText, color: '#f59e0b' }, // amber
   { name: 'Bulk Create', href: '/dashboard/bulk-create', icon: FileStack, color: '#8b5cf6', isNew: true }, // violet
-  { name: 'Schedules', href: '/dashboard/schedules', icon: Calendar, color: '#ec4899' }, // pink
   { name: 'API Keys', href: '/dashboard/api-keys', icon: Key, color: '#f97316' },      // orange
   { name: 'Users', href: '/dashboard/users', icon: Users, color: '#06b6d4' },          // cyan
   { name: 'Settings', href: '/dashboard/settings', icon: Settings, color: '#6b7280' }, // gray

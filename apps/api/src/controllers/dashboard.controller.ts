@@ -24,7 +24,6 @@ export class DashboardController {
       const [
         totalSites,
         activeSites,
-        activeSchedules,
         todayPosts,
         weekPosts,
         queueCount,
@@ -35,12 +34,6 @@ export class DashboardController {
           where: {
             status: 'ACTIVE',
             ...(req.user!.role !== 'ADMIN' ? { users: { some: { userId: req.user!.id } } } : {}),
-          },
-        }),
-        prisma.schedule.count({
-          where: {
-            isActive: true,
-            ...siteFilter,
           },
         }),
         prisma.article.count({
@@ -75,7 +68,6 @@ export class DashboardController {
       res.json({
         totalSites,
         activeSites,
-        activeSchedules,
         todayPosts,
         weekPosts,
         queueCount,

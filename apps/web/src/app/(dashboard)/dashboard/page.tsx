@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Globe,
   FileText,
-  Calendar,
   AlertCircle,
   CheckCircle,
   Clock,
@@ -34,13 +33,6 @@ export default function DashboardPage() {
       icon: CheckCircle,
       gradient: 'from-success-500 to-success-600',
       glow: 'shadow-[0_0_20px_rgba(34,197,94,0.3)]',
-    },
-    {
-      title: 'Active Schedules',
-      value: stats?.activeSchedules || 0,
-      icon: Calendar,
-      gradient: 'from-accent-500 to-accent-600',
-      glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]',
     },
     {
       title: 'Today\'s Posts',

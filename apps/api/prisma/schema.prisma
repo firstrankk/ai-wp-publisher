@@ -78,7 +78,6 @@ model User {
 
   sites     UserSite[]
   articles  Article[]
-  schedules Schedule[]
 
   @@index([email])
   @@index([role])
@@ -100,7 +99,6 @@ model Site {
   groups    SiteGroupSite[]
   users     UserSite[]
   articles  Article[]
-  schedules Schedule[]
 
   @@index([url])
   @@index([status])
@@ -144,6 +142,7 @@ model Article {
   tone          Tone
   length        Length
   seoKeywords   String[]
+  seoLinks      Json?         // Array of { keyword, url, maxCount }
   featuredImage String? // URL or base64
   wpPostId      String? // WordPress Post ID
   wpPostUrl     String?
@@ -156,8 +155,6 @@ model Article {
   site       Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
   userId     String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scheduleId String?
-  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -168,48 +165,6 @@ model Article {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
-}
-
-model Schedule {
-  id        String   @id @default(cuid())
-  name      String
-  isActive  Boolean  @default(true)
-  frequency Int // posts per week
-  days      Int[] // 0=Sun, 1=Mon, ...
-  timeStart String // "09:00"
-  timeEnd   String // "17:00"
-  tone      Tone
-  length    Length
-
-  siteId String
-  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  keywords  Keyword[]
-  articles  Article[]
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  lastRunAt DateTime?
-
-  @@index([siteId])
-  @@index([isActive])
-}
-
-model Keyword {
-  id      String    @id @default(cuid())
-  keyword String
-  isUsed  Boolean   @default(false)
-  usedAt  DateTime?
-
-  scheduleId String
-  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@index([scheduleId])
-  @@index([isUsed])
 }
 
 model ApiKey {

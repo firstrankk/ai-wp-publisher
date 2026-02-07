@@ -63,7 +63,7 @@ export class SiteController {
             createdAt: true,
             updatedAt: true,
             _count: {
-              select: { articles: true, schedules: true },
+              select: { articles: true },
             },
             groups: {
               include: {
@@ -163,7 +163,7 @@ export class SiteController {
           createdAt: true,
           updatedAt: true,
           _count: {
-            select: { articles: true, schedules: true },
+            select: { articles: true },
           },
           groups: {
             include: {

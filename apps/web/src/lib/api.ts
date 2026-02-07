@@ -92,29 +92,6 @@ export const articlesApi = {
   bulkGenerate: (data: any) => api.post('/articles/bulk-generate', data),
 };
 
-// Schedules API
-export const schedulesApi = {
-  list: (params?: any) => api.get('/schedules', { params }),
-  get: (id: string) => api.get(`/schedules/${id}`),
-  create: (data: any) => api.post('/schedules', data),
-  update: (id: string, data: any) => api.put(`/schedules/${id}`, data),
-  delete: (id: string) => api.delete(`/schedules/${id}`),
-  run: (id: string) => api.post(`/schedules/${id}/run`),
-  pause: (id: string) => api.post(`/schedules/${id}/pause`),
-  resume: (id: string) => api.post(`/schedules/${id}/resume`),
-  history: (id: string, params?: any) =>
-    api.get(`/schedules/${id}/history`, { params }),
-  // Keywords
-  listKeywords: (id: string, params?: any) =>
-    api.get(`/schedules/${id}/keywords`, { params }),
-  addKeywords: (id: string, keywords: string[]) =>
-    api.post(`/schedules/${id}/keywords`, { keywords }),
-  removeKeyword: (id: string, keywordId: string) =>
-    api.delete(`/schedules/${id}/keywords/${keywordId}`),
-  bulkImportKeywords: (id: string, keywords: string[]) =>
-    api.post(`/schedules/${id}/keywords/bulk`, { keywords }),
-};
-
 // API Keys API
 export const apiKeysApi = {
   list: () => api.get('/api-keys'),

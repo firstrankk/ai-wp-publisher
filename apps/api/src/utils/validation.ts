@@ -69,6 +69,13 @@ export const updateSiteGroupSchema = z.object({
   siteIds: z.array(z.string()).optional(),
 });
 
+// SEO Link schema
+const seoLinkSchema = z.object({
+  keyword: z.string().min(1),
+  url: z.string().url(),
+  maxCount: z.number().min(1).max(10).default(1),
+});
+
 // Article schemas
 export const createArticleSchema = z.object({
   keyword: z.string().min(1, 'Keyword is required'),
@@ -76,6 +83,7 @@ export const createArticleSchema = z.object({
   tone: z.enum(['FRIENDLY', 'FORMAL', 'EDUCATIONAL', 'SALES', 'PROFESSIONAL', 'HUMOROUS', 'INSPIRATIONAL', 'STORYTELLING', 'NEWS', 'REVIEW']),
   length: z.enum(['SHORT', 'MEDIUM', 'LONG']),
   seoKeywords: z.array(z.string()).optional(),
+  seoLinks: z.array(seoLinkSchema).optional(),
   category: z.string().optional(),
   categories: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
@@ -95,34 +103,6 @@ export const updateArticleSchema = z.object({
   categories: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   scheduledAt: z.string().datetime().optional().nullable(),
-});
-
-// Schedule schemas
-export const createScheduleSchema = z.object({
-  name: z.string().min(1, 'Schedule name is required'),
-  siteId: z.string().min(1, 'Site is required'),
-  frequency: z.number().min(1).max(7),
-  days: z.array(z.number().min(0).max(6)),
-  timeStart: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format'),
-  timeEnd: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format'),
-  tone: z.enum(['FRIENDLY', 'FORMAL', 'EDUCATIONAL', 'SALES', 'PROFESSIONAL', 'HUMOROUS', 'INSPIRATIONAL', 'STORYTELLING', 'NEWS', 'REVIEW']),
-  length: z.enum(['SHORT', 'MEDIUM', 'LONG']),
-  keywords: z.array(z.string()).optional(),
-});
-
-export const updateScheduleSchema = z.object({
-  name: z.string().min(1).optional(),
-  frequency: z.number().min(1).max(7).optional(),
-  days: z.array(z.number().min(0).max(6)).optional(),
-  timeStart: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).optional(),
-  timeEnd: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).optional(),
-  tone: z.enum(['FRIENDLY', 'FORMAL', 'EDUCATIONAL', 'SALES', 'PROFESSIONAL', 'HUMOROUS', 'INSPIRATIONAL', 'STORYTELLING', 'NEWS', 'REVIEW']).optional(),
-  length: z.enum(['SHORT', 'MEDIUM', 'LONG']).optional(),
-  isActive: z.boolean().optional(),
-});
-
-export const addKeywordsSchema = z.object({
-  keywords: z.array(z.string().min(1)).min(1, 'At least one keyword is required'),
 });
 
 // API Key schemas

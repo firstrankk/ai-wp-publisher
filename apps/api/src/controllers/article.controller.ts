@@ -11,6 +11,54 @@ import { WordPressService } from '../services/wordpress.service.js';
 import { decrypt } from '../utils/encryption.js';
 import type { AuthRequest } from '../middlewares/auth.middleware.js';
 
+interface SeoLink {
+  keyword: string;
+  url: string;
+  maxCount: number;
+}
+
+// Helper function to insert SEO links into content
+function insertSeoLinks(content: string, seoLinks: SeoLink[]): string {
+  if (!seoLinks || seoLinks.length === 0) {
+    return content;
+  }
+
+  let modifiedContent = content;
+
+  for (const link of seoLinks) {
+    const { keyword, url, maxCount } = link;
+    if (!keyword || !url) continue;
+
+    // Track how many replacements we've made
+    let replacementCount = 0;
+
+    // Create a regex to find the keyword (case-insensitive, not inside existing tags)
+    // This regex looks for the keyword that is NOT inside an HTML tag
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Split content by HTML tags to avoid replacing inside tags
+    const parts = modifiedContent.split(/(<[^>]*>)/);
+
+    modifiedContent = parts.map(part => {
+      // If it's an HTML tag, don't modify it
+      if (part.startsWith('<')) {
+        return part;
+      }
+
+      // Replace keyword occurrences in text content
+      return part.replace(new RegExp(escapedKeyword, 'gi'), (match) => {
+        if (replacementCount < maxCount) {
+          replacementCount++;
+          return `<a href="${url}" target="_blank" rel="noopener">${match}</a>`;
+        }
+        return match;
+      });
+    }).join('');
+  }
+
+  return modifiedContent;
+}
+
 export class ArticleController {
   async list(req: AuthRequest, res: Response) {
     try {
@@ -116,6 +164,7 @@ export class ArticleController {
           tone: data.tone,
           length: data.length,
           seoKeywords: data.seoKeywords || [],
+          seoLinks: data.seoLinks || null,
           categories: data.categories || [],
           tags: data.tags || [],
           scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
@@ -265,18 +314,34 @@ export class ArticleController {
         const decryptedKey = decrypt(apiKey.key);
         const aiService = new AIService(decryptedKey, apiKey.provider, apiKey.model || undefined);
 
+        // Extract SEO link keywords to tell AI to include them
+        let seoLinkKeywords: { keyword: string; count: number }[] | undefined;
+        if (article.seoLinks && Array.isArray(article.seoLinks)) {
+          seoLinkKeywords = (article.seoLinks as SeoLink[]).map(link => ({
+            keyword: link.keyword,
+            count: link.maxCount,
+          }));
+        }
+
         // Generate content
         const generated = await aiService.generateArticle({
           keyword: article.keyword,
           tone: article.tone,
           length: article.length,
           seoKeywords: article.seoKeywords,
+          seoLinkKeywords,
         });
+
+        // Insert SEO links into content if available
+        let processedContent = generated.content;
+        if (article.seoLinks && Array.isArray(article.seoLinks)) {
+          processedContent = insertSeoLinks(generated.content, article.seoLinks as SeoLink[]);
+        }
 
         // Prepare update data
         const updateData: any = {
           title: generated.title,
-          content: generated.content,
+          content: processedContent,
           excerpt: generated.excerpt,
           status: 'READY',
         };

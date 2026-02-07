@@ -1,10 +1,16 @@
 import type { Tone, Length, ApiProvider } from '@prisma/client';
 
+interface SeoLinkKeyword {
+  keyword: string;
+  count: number;
+}
+
 interface GenerateArticleParams {
   keyword: string;
   tone: Tone;
   length: Length;
   seoKeywords?: string[];
+  seoLinkKeywords?: SeoLinkKeyword[];
 }
 
 interface GeneratedArticle {
@@ -60,9 +66,18 @@ export class AIService {
   }
 
   private buildPrompt(params: GenerateArticleParams) {
-    const { keyword, tone, length, seoKeywords } = params;
+    const { keyword, tone, length, seoKeywords, seoLinkKeywords } = params;
     const toneInstruction = TONE_PROMPTS[tone];
     const lengthTarget = LENGTH_TARGETS[length];
+
+    // Build SEO link keywords instruction
+    let seoLinkInstruction = '';
+    if (seoLinkKeywords && seoLinkKeywords.length > 0) {
+      const keywordList = seoLinkKeywords
+        .map(k => `"${k.keyword}" (ใช้อย่างน้อย ${k.count} ครั้ง)`)
+        .join(', ');
+      seoLinkInstruction = `\n10. ต้องใส่คำเหล่านี้ในเนื้อหาบทความอย่างเป็นธรรมชาติ: ${keywordList}`;
+    }
 
     const systemPrompt = `คุณเป็นนักเขียนบทความมืออาชีพที่เชี่ยวชาญในการเขียนบทความภาษาไทยที่มีคุณภาพสูง SEO-friendly และน่าสนใจ
 
@@ -75,7 +90,7 @@ export class AIService {
 6. หลีกเลี่ยงการใช้คำซ้ำซาก
 7. เขียนเนื้อหาที่เป็นต้นฉบับ ไม่ลอกจากที่อื่น
 8. หัวข้อบทความห้ามใช้เครื่องหมาย : (colon) โดยเด็ดขาด ให้ใช้คำเชื่อมหรือเขียนเป็นประโยคแทน
-9. สร้าง tags 3-5 คำที่เกี่ยวข้องกับบทความ (คำสั้นๆ เหมาะสำหรับ SEO)
+9. สร้าง tags 3-5 คำที่เกี่ยวข้องกับบทความ (คำสั้นๆ เหมาะสำหรับ SEO)${seoLinkInstruction}
 
 รูปแบบ Output:
 - ส่งกลับเป็น JSON เท่านั้น
@@ -87,6 +102,7 @@ export class AIService {
 
     const userPrompt = `เขียนบทความเกี่ยวกับ: "${keyword}"
 ${seoKeywords && seoKeywords.length > 0 ? `\nSEO Keywords ที่ต้องใช้ในบทความ: ${seoKeywords.join(', ')}` : ''}
+${seoLinkKeywords && seoLinkKeywords.length > 0 ? `\nคำสำคัญที่ต้องใส่ในเนื้อหา: ${seoLinkKeywords.map(k => `"${k.keyword}" อย่างน้อย ${k.count} ครั้ง`).join(', ')}` : ''}
 
 สร้างบทความที่:
 1. มีหัวข้อที่น่าสนใจ ดึงดูดให้คลิก (ห้ามใช้เครื่องหมาย : ในหัวข้อ)
@@ -111,48 +127,70 @@ ${seoKeywords && seoKeywords.length > 0 ? `\nSEO Keywords ที่ต้อง�
     }
 
     let parsed;
+    let tags: string[] = [];
+
     try {
       parsed = JSON.parse(cleanedContent);
+      // Extract tags from parsed JSON
+      if (parsed.tags && Array.isArray(parsed.tags)) {
+        tags = parsed.tags.filter((t: any) => typeof t === 'string' && t.trim().length > 0);
+      }
     } catch (e) {
       // If JSON parsing fails, try to fix common issues
       // Sometimes AI returns content with unescaped newlines in strings
       try {
-        // Try to parse by extracting fields manually using regex
-        const titleMatch = cleanedContent.match(/"title"\s*:\s*"([^"]+)"/);
-        const excerptMatch = cleanedContent.match(/"excerpt"\s*:\s*"([^"]+)"/);
+        // Extract title
+        const titleMatch = cleanedContent.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
 
-        // For content, it's more complex - find the content field and extract until the next field or end
-        const contentStart = cleanedContent.indexOf('"content"');
-        if (contentStart === -1 || !titleMatch) {
-          throw new Error('Could not extract article fields from response');
+        // Extract excerpt
+        const excerptMatch = cleanedContent.match(/"excerpt"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+
+        // Extract tags - look for array pattern
+        const tagsMatch = cleanedContent.match(/"tags"\s*:\s*\[(.*?)\]/s);
+        if (tagsMatch) {
+          const tagsStr = tagsMatch[1];
+          const tagMatches = tagsStr.match(/"([^"]+)"/g);
+          if (tagMatches) {
+            tags = tagMatches.map(t => t.replace(/"/g, '').trim()).filter(t => t.length > 0);
+          }
         }
 
-        // Find where content value starts (after "content": ")
-        const contentValueStart = cleanedContent.indexOf(':', contentStart) + 1;
-        let contentValue = cleanedContent.slice(contentValueStart).trim();
+        // For content, find the content field and extract properly
+        const contentMatch = cleanedContent.match(/"content"\s*:\s*"([\s\S]*?)(?:",\s*"(?:excerpt|tags|title)"|\"\s*\})/);
 
-        // Remove leading quote
-        if (contentValue.startsWith('"')) {
-          contentValue = contentValue.slice(1);
+        if (!titleMatch) {
+          throw new Error('Could not extract title from response');
         }
 
-        // Find the end of content - look for ", "excerpt" or ", "title" or just "}"
-        let contentEnd = contentValue.length;
-        const excerptPos = contentValue.lastIndexOf('", "excerpt"');
-        const endBracePos = contentValue.lastIndexOf('"}');
+        let extractedContent = '';
+        if (contentMatch) {
+          extractedContent = contentMatch[1];
+        } else {
+          // Fallback: manual extraction
+          const contentStart = cleanedContent.indexOf('"content"');
+          if (contentStart !== -1) {
+            const contentValueStart = cleanedContent.indexOf('"', contentStart + 9) + 1;
+            let contentValue = cleanedContent.slice(contentValueStart);
 
-        if (excerptPos !== -1) {
-          contentEnd = excerptPos;
-        } else if (endBracePos !== -1) {
-          contentEnd = endBracePos;
+            // Find end by looking for field boundaries
+            const boundaries = ['", "excerpt"', '", "tags"', '", "title"', '"}'];
+            let minPos = contentValue.length;
+
+            for (const boundary of boundaries) {
+              const pos = contentValue.indexOf(boundary);
+              if (pos !== -1 && pos < minPos) {
+                minPos = pos;
+              }
+            }
+
+            extractedContent = contentValue.slice(0, minPos);
+          }
         }
-
-        const extractedContent = contentValue.slice(0, contentEnd);
 
         parsed = {
-          title: titleMatch[1],
-          content: extractedContent,
-          excerpt: excerptMatch ? excerptMatch[1] : '',
+          title: titleMatch[1].replace(/\\"/g, '"'),
+          content: extractedContent.replace(/\\"/g, '"'),
+          excerpt: excerptMatch ? excerptMatch[1].replace(/\\"/g, '"') : '',
         };
       } catch (extractError) {
         throw new Error(`Failed to parse AI response: ${(e as Error).message}`);
@@ -169,8 +207,10 @@ ${seoKeywords && seoKeywords.length > 0 ? `\nSEO Keywords ที่ต้อง�
       .replace(/\s+/g, ' ')         // Replace multiple spaces with single space
       .trim();
 
-    // Clean up content - handle escaped newlines
+    // Clean up content - handle escaped newlines and remove any trailing JSON fragments
     let cleanContent = parsed.content
+      .replace(/",\s*"excerpt"[\s\S]*$/g, '')  // Remove trailing JSON if present
+      .replace(/",\s*"tags"[\s\S]*$/g, '')     // Remove trailing tags JSON if present
       .replace(/\\n\\n/g, '</p><p>')  // Double escaped newlines -> paragraph break
       .replace(/\\n/g, '<br>')         // Single escaped newline -> line break
       .replace(/\n\n/g, '</p><p>')     // Double actual newlines -> paragraph break
@@ -179,11 +219,7 @@ ${seoKeywords && seoKeywords.length > 0 ? `\nSEO Keywords ที่ต้อง�
       .replace(/<br>\s*<br>/g, '</p><p>') // Double line breaks -> paragraph
       .trim();
 
-    // Extract tags if present
-    let tags: string[] = [];
-    if (parsed.tags && Array.isArray(parsed.tags)) {
-      tags = parsed.tags.filter((t: any) => typeof t === 'string' && t.trim().length > 0);
-    }
+    console.log('Parsed tags:', tags);
 
     return {
       title: cleanTitle,

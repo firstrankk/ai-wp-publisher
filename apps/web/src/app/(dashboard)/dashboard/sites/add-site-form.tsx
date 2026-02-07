@@ -7,7 +7,6 @@ import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { sitesApi } from '@/lib/api';
 
 const addSiteSchema = z.object({
@@ -15,7 +14,6 @@ const addSiteSchema = z.object({
   url: z.string().url('Invalid URL'),
   username: z.string().min(1, 'Username is required'),
   appPassword: z.string().min(1, 'App password is required'),
-  defaultPostStatus: z.enum(['DRAFT', 'PUBLISH', 'PENDING']),
 });
 
 type AddSiteForm = z.infer<typeof addSiteSchema>;
@@ -34,9 +32,6 @@ export function AddSiteForm({ onSuccess, onCancel }: AddSiteFormProps) {
     formState: { errors },
   } = useForm<AddSiteForm>({
     resolver: zodResolver(addSiteSchema),
-    defaultValues: {
-      defaultPostStatus: 'DRAFT',
-    },
   });
 
   const onSubmit = async (data: AddSiteForm) => {
@@ -103,21 +98,6 @@ export function AddSiteForm({ onSuccess, onCancel }: AddSiteFormProps) {
         <p className="mt-1 text-xs" style={{ color: '#6b7280' }}>
           Generate an Application Password in WordPress Users {'>'} Profile {'>'} Application Passwords
         </p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          Default Post Status
-        </label>
-        <Select
-          {...register('defaultPostStatus')}
-          options={[
-            { value: 'DRAFT', label: 'Draft' },
-            { value: 'PUBLISH', label: 'Publish' },
-            { value: 'PENDING', label: 'Pending Review' },
-          ]}
-          error={errors.defaultPostStatus?.message}
-        />
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
