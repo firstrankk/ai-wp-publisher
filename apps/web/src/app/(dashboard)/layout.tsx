@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
+import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useArticleNotifications } from '@/hooks/useArticleNotifications';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 // Sidebar context for managing open/close state
 interface SidebarContextType {
@@ -30,12 +32,23 @@ export default function DashboardLayout({
 }) {
   const [isOpen, setIsOpen] = useState(false); // Mobile drawer
   const [isCollapsed, setIsCollapsed] = useState(false); // Desktop collapsed
-  const { restoreSession } = useAuth();
+  const router = useRouter();
+  const { token, _hasHydrated, restoreSession } = useAuth();
   useArticleNotifications();
 
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
+
+  useEffect(() => {
+    if (_hasHydrated && !token) {
+      router.replace('/login');
+    }
+  }, [token, _hasHydrated, router]);
+
+  if (!_hasHydrated || !token) {
+    return null;
+  }
 
   return (
     <SidebarContext.Provider value={{ isOpen, setIsOpen, isCollapsed, setIsCollapsed }}>
@@ -74,7 +87,9 @@ export default function DashboardLayout({
           </div>
 
           <div className="min-h-full">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
       </div>

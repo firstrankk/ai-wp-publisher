@@ -13,6 +13,7 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  _hasHydrated: boolean;
   setAuth: (user: User, token: string) => void;
   clearAuth: () => void;
   restoreSession: () => Promise<void>;
@@ -26,6 +27,7 @@ export const useAuth = create<AuthState>()(
       user: null,
       token: null,
       isLoading: false,
+      _hasHydrated: false,
       setAuth: (user, token) => {
         localStorage.setItem('token', token);
         set({ user, token });
@@ -59,6 +61,9 @@ export const useAuth = create<AuthState>()(
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ user: state.user, token: state.token }),
+      onRehydrateStorage: () => () => {
+        useAuth.setState({ _hasHydrated: true });
+      },
     }
   )
 );

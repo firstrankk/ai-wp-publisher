@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import DOMPurify from 'dompurify';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -766,9 +767,9 @@ export default function NewArticlePage() {
                                   className="relative p-3 rounded-xl border-2 transition-all"
                                   style={{
                                     borderColor: selectedPreset.id === preset.id ? '#2563eb' : '#e5e7eb',
-                                    boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(37, 99, 235, 0.2)' : 'none'
+                                    boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(37, 99, 235, 0.2)' : 'none',
+                                    backgroundColor: (preset as any).bg,
                                   }}
-                                  style={{ backgroundColor: preset.bg }}
                                   title={preset.name}
                                 >
                                   <span className="text-xs font-medium" style={{ color: preset.text }}>
@@ -790,12 +791,10 @@ export default function NewArticlePage() {
                                   className="relative p-3 rounded-xl border-2 transition-all"
                                   style={{
                                     borderColor: selectedPreset.id === preset.id ? '#2563eb' : '#e5e7eb',
-                                    boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(37, 99, 235, 0.2)' : 'none'
-                                  }}
-                                  style={{
+                                    boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(37, 99, 235, 0.2)' : 'none',
                                     background: preset.gradient
                                       ? `linear-gradient(${preset.gradient.angle || 135}deg, ${preset.gradient.colors.join(', ')})`
-                                      : preset.bg,
+                                      : (preset as any).bg,
                                   }}
                                   title={preset.name}
                                 >
@@ -1088,7 +1087,7 @@ export default function NewArticlePage() {
                   <div
                     className="prose prose-sm max-w-none [&_a]:text-blue-600 [&_a]:underline [&_a]:font-medium [&_h1]:text-blue-700 [&_h1]:font-bold [&_h1]:text-2xl [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-emerald-600 [&_h2]:font-bold [&_h2]:text-xl [&_h2]:mt-5 [&_h2]:mb-2 [&_h3]:text-violet-600 [&_h3]:font-semibold [&_h3]:text-lg [&_h3]:mt-4 [&_h3]:mb-2 [&_h4]:text-orange-600 [&_h4]:font-semibold [&_h4]:text-base [&_h4]:mt-3 [&_h4]:mb-1"
                     style={{ color: '#374151' }}
-                    dangerouslySetInnerHTML={{ __html: article.content ? processContentForPreview(article.content) : '' }}
+                    dangerouslySetInnerHTML={{ __html: article.content ? DOMPurify.sanitize(processContentForPreview(article.content)) : '' }}
                   />
                   {linkMappings.length > 0 && (
                     <div className="mt-4 p-3 rounded-lg flex items-center gap-2" style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd' }}>

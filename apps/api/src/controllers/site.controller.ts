@@ -304,6 +304,16 @@ export class SiteController {
         return res.status(404).json({ error: 'Site not found' });
       }
 
+      // Check access for non-admin
+      if (req.user!.role !== 'ADMIN') {
+        const hasAccess = await prisma.userSite.findFirst({
+          where: { userId: req.user!.id, siteId: id },
+        });
+        if (!hasAccess) {
+          return res.status(403).json({ error: 'Access denied' });
+        }
+      }
+
       // Decrypt password
       const appPassword = decrypt(site.appPassword);
 
@@ -389,7 +399,7 @@ export class SiteController {
         site.createdAt.toISOString(),
       ]);
 
-      const csv = [headers.join(','), ...rows.map((row) => row.map((cell) => `"${cell}"`).join(','))].join('\n');
+      const csv = [headers.join(','), ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))].join('\n');
 
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=sites.csv');

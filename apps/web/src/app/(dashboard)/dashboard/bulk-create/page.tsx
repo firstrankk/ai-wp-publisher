@@ -323,17 +323,12 @@ export default function BulkCreatePage() {
 
         // Publish or schedule
         let wpPostUrl: string | undefined;
-        console.log('Article scheduledAt:', article.scheduledAt);
-        console.log('Schedule mode:', scheduleMode);
-        console.log('First article now:', firstArticleNow);
         if (!article.scheduledAt) {
           // Publish immediately
-          console.log('Publishing immediately...');
           const publishRes = await articlesApi.publish(articleId, 'publish');
           wpPostUrl = publishRes.data?.wpPostUrl;
         } else {
           // Schedule for later - publish to WordPress with 'future' status
-          console.log('Scheduling for:', article.scheduledAt.toISOString());
           const publishRes = await articlesApi.publish(articleId, 'future', article.scheduledAt.toISOString());
           wpPostUrl = publishRes.data?.wpPostUrl;
         }

@@ -20,21 +20,7 @@ export const authenticate = async (
   try {
     const authHeader = req.headers.authorization;
 
-    // DEV MODE: Skip auth and use default admin user
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      const adminUser = await prisma.user.findFirst({
-        where: { role: 'ADMIN' },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-        },
-      });
-      if (adminUser) {
-        req.user = adminUser;
-        return next();
-      }
       return res.status(401).json({ error: 'No token provided' });
     }
 

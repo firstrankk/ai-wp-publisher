@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Plus,
   Search,
@@ -13,11 +14,14 @@ import {
   Sparkles,
   Send,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   CheckSquare,
   Square,
   MinusSquare,
   MoreVertical,
   Globe,
+  AlertTriangle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Header } from '@/components/layout/header';
@@ -25,15 +29,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Modal } from '@/components/ui/modal';
 import { articlesApi, sitesApi } from '@/lib/api';
 import { formatDate, STATUS_LABELS, TONE_LABELS } from '@/lib/utils';
 
 export default function ArticlesPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [siteFilter, setSiteFilter] = useState('');
+  const [page, setPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Delete confirmation dialog state
@@ -41,15 +47,23 @@ export default function ArticlesPage() {
     isOpen: boolean;
     articleId?: string;
     isBulk: boolean;
-  }>({ isOpen: false, isBulk: false });
+    deleteFromWP: boolean;
+  }>({ isOpen: false, isBulk: false, deleteFromWP: false });
+
+  // Reset page when filters change
+  const handleSearch = (value: string) => { setSearch(value); setPage(1); };
+  const handleStatusFilter = (value: string) => { setStatusFilter(value); setPage(1); };
+  const handleSiteFilter = (value: string) => { setSiteFilter(value); setPage(1); };
 
   const { data: articles, isLoading } = useQuery({
-    queryKey: ['articles', search, statusFilter, siteFilter],
+    queryKey: ['articles', search, statusFilter, siteFilter, page],
     queryFn: () =>
       articlesApi
-        .list({ search, status: statusFilter || undefined, siteId: siteFilter || undefined, limit: 50 })
+        .list({ search, status: statusFilter || undefined, siteId: siteFilter || undefined, limit: 50, page })
         .then((res) => res.data),
   });
+
+  const totalPages = articles?.totalPages || 1;
 
   const { data: sites } = useQuery({
     queryKey: ['sites-list'],
@@ -104,16 +118,17 @@ export default function ArticlesPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => articlesApi.delete(id),
+    mutationFn: ({ id, deleteFromWP }: { id: string; deleteFromWP: boolean }) =>
+      articlesApi.delete(id, deleteFromWP),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
     },
   });
 
   const bulkDeleteMutation = useMutation({
-    mutationFn: async (ids: string[]) => {
+    mutationFn: async ({ ids, deleteFromWP }: { ids: string[]; deleteFromWP: boolean }) => {
       for (const id of ids) {
-        await articlesApi.delete(id);
+        await articlesApi.delete(id, deleteFromWP);
       }
     },
     onSuccess: () => {
@@ -128,20 +143,20 @@ export default function ArticlesPage() {
 
   const handleBulkDelete = () => {
     if (selectedIds.size === 0) return;
-    setDeleteDialog({ isOpen: true, isBulk: true });
+    setDeleteDialog({ isOpen: true, isBulk: true, deleteFromWP: false });
   };
 
   const handleDeleteConfirm = () => {
     if (deleteDialog.isBulk) {
-      bulkDeleteMutation.mutate(Array.from(selectedIds));
+      bulkDeleteMutation.mutate({ ids: Array.from(selectedIds), deleteFromWP: deleteDialog.deleteFromWP });
     } else if (deleteDialog.articleId) {
-      deleteMutation.mutate(deleteDialog.articleId);
+      deleteMutation.mutate({ id: deleteDialog.articleId, deleteFromWP: deleteDialog.deleteFromWP });
     }
-    setDeleteDialog({ isOpen: false, isBulk: false });
+    setDeleteDialog({ isOpen: false, isBulk: false, deleteFromWP: false });
   };
 
   const openDeleteDialog = (articleId: string) => {
-    setDeleteDialog({ isOpen: true, articleId, isBulk: false });
+    setDeleteDialog({ isOpen: true, articleId, isBulk: false, deleteFromWP: false });
   };
 
   // Publish dropdown component
@@ -224,13 +239,14 @@ export default function ArticlesPage() {
   // Mobile card component
   const ArticleCard = ({ article }: { article: any }) => (
     <div
-      className={`p-4 border-b border-gray-100 last:border-b-0 ${
+      onClick={() => router.push(`/dashboard/articles/${article.id}`)}
+      className={`p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors ${
         selectedIds.has(article.id) ? 'bg-blue-50' : ''
       }`}
     >
       <div className="flex items-start gap-3">
         <button
-          onClick={() => toggleSelect(article.id)}
+          onClick={(e) => { e.stopPropagation(); toggleSelect(article.id); }}
           className="mt-1 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
         >
           {selectedIds.has(article.id) ? (
@@ -264,7 +280,7 @@ export default function ArticlesPage() {
             <span>{formatDate(article.createdAt)}</span>
           </div>
 
-          <div className="flex items-center gap-1 mt-3">
+          <div className="flex items-center gap-1 mt-3" onClick={(e) => e.stopPropagation()}>
             {article.status === 'DRAFT' && (
               <Button
                 variant="outline"
@@ -322,7 +338,7 @@ export default function ArticlesPage() {
           <Link href="/dashboard/articles/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">New Article</span>
+              <span className="hidden sm:inline">สร้างบทความ</span>
               <span className="sm:hidden">New</span>
             </Button>
           </Link>
@@ -338,7 +354,7 @@ export default function ArticlesPage() {
             <Input
               placeholder="Search articles..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               className="pl-10 w-full"
             />
           </div>
@@ -348,7 +364,7 @@ export default function ArticlesPage() {
             <div className="w-full sm:w-auto">
               <Select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => handleStatusFilter(e.target.value)}
                 options={[
                   { value: '', label: 'All Status' },
                   { value: 'DRAFT', label: 'Draft' },
@@ -365,7 +381,7 @@ export default function ArticlesPage() {
             <div className="w-full sm:w-auto">
               <Select
                 value={siteFilter}
-                onChange={(e) => setSiteFilter(e.target.value)}
+                onChange={(e) => handleSiteFilter(e.target.value)}
                 options={[
                   { value: '', label: 'All Sites' },
                   ...(sites?.data?.map((site: any) => ({
@@ -456,11 +472,12 @@ export default function ArticlesPage() {
                   articleList.map((article: any) => (
                     <tr
                       key={article.id}
-                      className={`hover:bg-gray-50 transition-colors ${selectedIds.has(article.id) ? 'bg-blue-50' : ''}`}
+                      onClick={() => router.push(`/dashboard/articles/${article.id}`)}
+                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${selectedIds.has(article.id) ? 'bg-blue-50' : ''}`}
                     >
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => toggleSelect(article.id)}
+                          onClick={(e) => { e.stopPropagation(); toggleSelect(article.id); }}
                           className="text-gray-400 hover:text-gray-600 transition-colors"
                         >
                           {selectedIds.has(article.id) ? (
@@ -503,7 +520,7 @@ export default function ArticlesPage() {
                           {formatDate(article.createdAt)}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <div className="flex justify-end gap-1">
                           {article.status === 'DRAFT' && (
                             <Button
@@ -595,31 +612,113 @@ export default function ArticlesPage() {
           )}
         </div>
 
-        {/* Footer info */}
+        {/* Pagination */}
         {articleList.length > 0 && (
-          <div className="mt-3 text-sm text-gray-500 hidden md:block">
-            Showing {articleList.length} article{articleList.length !== 1 ? 's' : ''}
-            {articles?.total > articleList.length && ` of ${articles.total}`}
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-sm text-gray-500">
+              Showing {articleList.length} article{articleList.length !== 1 ? 's' : ''}
+              {articles?.total > articleList.length && ` of ${articles.total}`}
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                ก่อนหน้า
+              </Button>
+              <span className="text-sm text-gray-600 px-2">
+                {page} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+              >
+                ถัดไป
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </div>
         )}
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
+      <Modal
         isOpen={deleteDialog.isOpen}
-        onClose={() => setDeleteDialog({ isOpen: false, isBulk: false })}
-        onConfirm={handleDeleteConfirm}
-        title={deleteDialog.isBulk ? 'ลบบทความที่เลือก' : 'ลบบทความ'}
-        message={
-          deleteDialog.isBulk
-            ? `คุณต้องการลบบทความที่เลือกทั้ง ${selectedIds.size} รายการหรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้`
-            : 'คุณต้องการลบบทความนี้หรือไม่? หากโพสต์ไปแล้วจะถูกลบจาก WordPress ด้วย'
-        }
-        confirmText="ลบ"
-        cancelText="ยกเลิก"
-        variant="danger"
-        isLoading={deleteMutation.isPending || bulkDeleteMutation.isPending}
-      />
+        onClose={() => setDeleteDialog({ isOpen: false, isBulk: false, deleteFromWP: false })}
+        title={deleteDialog.isBulk ? `ลบบทความ ${selectedIds.size} รายการ` : 'ลบบทความ'}
+        size="sm"
+      >
+        <div className="space-y-4">
+          {/* Radio: DB only */}
+          <label
+            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+              !deleteDialog.deleteFromWP
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 hover:bg-gray-50'
+            }`}
+            onClick={() => setDeleteDialog((prev) => ({ ...prev, deleteFromWP: false }))}
+          >
+            <input
+              type="radio"
+              name="deleteMode"
+              checked={!deleteDialog.deleteFromWP}
+              onChange={() => setDeleteDialog((prev) => ({ ...prev, deleteFromWP: false }))}
+              className="mt-0.5"
+            />
+            <div>
+              <p className="font-medium text-gray-900">ลบเฉพาะในระบบ</p>
+              <p className="text-sm text-gray-500">บทความบน WordPress ยังคงอยู่</p>
+            </div>
+          </label>
+
+          {/* Radio: DB + WordPress */}
+          <label
+            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+              deleteDialog.deleteFromWP
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200 hover:bg-gray-50'
+            }`}
+            onClick={() => setDeleteDialog((prev) => ({ ...prev, deleteFromWP: true }))}
+          >
+            <input
+              type="radio"
+              name="deleteMode"
+              checked={deleteDialog.deleteFromWP}
+              onChange={() => setDeleteDialog((prev) => ({ ...prev, deleteFromWP: true }))}
+              className="mt-0.5"
+            />
+            <div>
+              <p className="font-medium text-gray-900">ลบทั้งในระบบและ WordPress</p>
+              <p className="text-sm text-red-600 flex items-center gap-1">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                บทความจะถูกลบถาวรจาก WordPress
+              </p>
+            </div>
+          </label>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialog({ isOpen: false, isBulk: false, deleteFromWP: false })}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteMutation.isPending || bulkDeleteMutation.isPending}
+            >
+              {(deleteMutation.isPending || bulkDeleteMutation.isPending) ? 'กำลังลบ...' : 'ลบ'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

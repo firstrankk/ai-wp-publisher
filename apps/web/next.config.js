@@ -2,7 +2,12 @@
 const nextConfig = {
   transpilePackages: ['@repo/shared'],
   images: {
-    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
 };
 

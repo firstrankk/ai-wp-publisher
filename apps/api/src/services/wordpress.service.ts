@@ -38,10 +38,24 @@ export class WordPressService {
     return `Basic ${credentials}`;
   }
 
+  private async fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      return response;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
   async testConnection(): Promise<{ success: boolean; message: string; user?: WPUser }> {
     try {
       // Test by fetching current user
-      const response = await fetch(`${this.baseUrl}/users/me`, {
+      const response = await this.fetchWithTimeout(`${this.baseUrl}/users/me`, {
         headers: {
           Authorization: this.getAuthHeader(),
         },
@@ -107,7 +121,7 @@ export class WordPressService {
       }
     }
 
-    const response = await fetch(`${this.baseUrl}/posts`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/posts`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -137,7 +151,7 @@ export class WordPressService {
     // Sanitize filename to ASCII only (HTTP headers don't support non-ASCII)
     const safeFilename = filename.replace(/[^\x00-\x7F]/g, '').trim() || `image-${Date.now()}.png`;
 
-    const response = await fetch(`${this.baseUrl}/media`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/media`, {
       method: 'POST',
       headers: {
         'Content-Disposition': `attachment; filename="${safeFilename}"`,
@@ -157,7 +171,7 @@ export class WordPressService {
   }
 
   async getCategories(): Promise<{ id: number; name: string; slug: string }[]> {
-    const response = await fetch(`${this.baseUrl}/categories?per_page=100`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/categories?per_page=100`, {
       headers: {
         Authorization: this.getAuthHeader(),
       },
@@ -205,7 +219,7 @@ export class WordPressService {
       } else {
         // Create new category
         try {
-          const response = await fetch(`${this.baseUrl}/categories`, {
+          const response = await this.fetchWithTimeout(`${this.baseUrl}/categories`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -228,7 +242,7 @@ export class WordPressService {
   }
 
   async getTags(): Promise<{ id: number; name: string; slug: string }[]> {
-    const response = await fetch(`${this.baseUrl}/tags?per_page=100`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/tags?per_page=100`, {
       headers: {
         Authorization: this.getAuthHeader(),
       },
@@ -258,7 +272,7 @@ export class WordPressService {
       } else {
         // Create new tag
         try {
-          const response = await fetch(`${this.baseUrl}/tags`, {
+          const response = await this.fetchWithTimeout(`${this.baseUrl}/tags`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -281,7 +295,7 @@ export class WordPressService {
   }
 
   async deletePost(postId: number): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/posts/${postId}?force=true`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/posts/${postId}?force=true`, {
       method: 'DELETE',
       headers: {
         Authorization: this.getAuthHeader(),
@@ -295,7 +309,7 @@ export class WordPressService {
   }
 
   async updatePost(postId: number, params: Partial<CreatePostParams>): Promise<WPPost> {
-    const response = await fetch(`${this.baseUrl}/posts/${postId}`, {
+    const response = await this.fetchWithTimeout(`${this.baseUrl}/posts/${postId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

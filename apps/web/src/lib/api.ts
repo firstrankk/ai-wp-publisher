@@ -20,17 +20,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors - DEV MODE: disabled redirect
+// Handle auth errors - redirect to login on 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Disabled for development
-    // if (error.response?.status === 401) {
-    //   if (typeof window !== 'undefined') {
-    //     localStorage.removeItem('token');
-    //     window.location.href = '/login';
-    //   }
-    // }
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    }
     return Promise.reject(error);
   }
 );
@@ -81,7 +80,8 @@ export const articlesApi = {
   get: (id: string) => api.get(`/articles/${id}`),
   create: (data: any) => api.post('/articles', data),
   update: (id: string, data: any) => api.put(`/articles/${id}`, data),
-  delete: (id: string) => api.delete(`/articles/${id}`),
+  delete: (id: string, deleteFromWP?: boolean) =>
+    api.delete(`/articles/${id}`, { params: deleteFromWP ? { deleteFromWP: 'true' } : undefined }),
   generate: (id: string) => api.post(`/articles/${id}/generate`),
   regenerate: (id: string) => api.post(`/articles/${id}/regenerate`),
   generateImage: (id: string, options?: any) =>
@@ -119,7 +119,7 @@ export const dashboardApi = {
   getStats: () => api.get('/dashboard/stats'),
   getRecentActivity: () => api.get('/dashboard/recent-activity'),
   getPostsReport: (period?: string) =>
-    api.get('/reports/posts', { params: { period } }),
-  getErrorsReport: () => api.get('/reports/errors'),
-  getApiUsageReport: () => api.get('/reports/api-usage'),
+    api.get('/dashboard/reports/posts', { params: { period } }),
+  getErrorsReport: () => api.get('/dashboard/reports/errors'),
+  getApiUsageReport: () => api.get('/dashboard/reports/api-usage'),
 };

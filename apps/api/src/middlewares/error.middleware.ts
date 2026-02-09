@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
 
 export class AppError extends Error {
@@ -22,9 +21,9 @@ export const errorHandler = (
 ) => {
   console.error('Error:', err);
 
-  // Zod validation error
-  if (err instanceof ZodError) {
-    const errors = err.errors.map((e) => ({
+  // Zod validation error (duck-type check to avoid CJS/ESM instanceof mismatch)
+  if ((err as any)?.issues) {
+    const errors = (err as any).issues.map((e: any) => ({
       field: e.path.join('.'),
       message: e.message,
     }));

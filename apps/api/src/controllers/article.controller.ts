@@ -74,7 +74,6 @@ function insertSeoLinks(content: string, seoLinks: SeoLink[]): string {
     // If we didn't find enough occurrences, insert keyword+link at appropriate positions
     const remaining = maxCount - replacementCount;
     if (remaining > 0) {
-      console.log(`Need to insert ${remaining} more links for keyword "${keyword}"`);
       modifiedContent = insertAdditionalLinks(modifiedContent, keyword, url, remaining);
     }
   }
@@ -130,7 +129,6 @@ function insertAdditionalLinks(content: string, keyword: string, url: string, co
     }
   }
 
-  console.log(`Inserted ${inserted} additional links for "${keyword}"`);
   return modifiedContent;
 }
 
@@ -310,6 +308,7 @@ export class ArticleController {
   async delete(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
+      const deleteFromWP = req.query.deleteFromWP === 'true';
 
       const existing = await prisma.article.findUnique({
         where: { id },
@@ -319,8 +318,8 @@ export class ArticleController {
         return res.status(404).json({ error: 'Article not found' });
       }
 
-      // If article was published to WordPress, delete it there too
-      if (existing.wpPostId && existing.site) {
+      // If requested, delete from WordPress too
+      if (deleteFromWP && existing.wpPostId && existing.site) {
         try {
           const decryptedPassword = decrypt(existing.site.appPassword);
           const wp = new WordPressService(
@@ -391,13 +390,11 @@ export class ArticleController {
 
         // Extract SEO link keywords to tell AI to include them
         let seoLinkKeywords: { keyword: string; count: number }[] | undefined;
-        console.log('Article seoLinks from DB:', article.seoLinks);
         if (article.seoLinks && Array.isArray(article.seoLinks)) {
           seoLinkKeywords = (article.seoLinks as SeoLink[]).map(link => ({
             keyword: link.keyword,
             count: link.maxCount,
           }));
-          console.log('Extracted seoLinkKeywords:', seoLinkKeywords);
         }
 
         // Generate content
@@ -412,10 +409,7 @@ export class ArticleController {
         // Insert SEO links into content if available
         let processedContent = generated.content;
         if (article.seoLinks && Array.isArray(article.seoLinks)) {
-          console.log('Inserting SEO links:', article.seoLinks);
           processedContent = insertSeoLinks(generated.content, article.seoLinks as SeoLink[]);
-          console.log('Content before SEO links:', generated.content.substring(0, 200));
-          console.log('Content after SEO links:', processedContent.substring(0, 200));
         }
 
         // Prepare update data
@@ -546,7 +540,15 @@ export class ArticleController {
       const { id } = req.params;
       const { status: publishStatus, scheduledAt } = req.body; // 'draft', 'publish', 'future' + optional scheduledAt
 
-      console.log('Publish request - status:', publishStatus, 'scheduledAt:', scheduledAt);
+      if (scheduledAt) {
+        const scheduleDate = new Date(scheduledAt);
+        if (isNaN(scheduleDate.getTime())) {
+          return res.status(400).json({ error: 'Invalid scheduledAt date format' });
+        }
+        if (scheduleDate <= new Date()) {
+          return res.status(400).json({ error: 'Scheduled date must be in the future' });
+        }
+      }
 
       const article = await prisma.article.findUnique({
         where: { id },
@@ -709,7 +711,7 @@ export class ArticleController {
       }
 
       // Create articles in draft status
-      const articles = await Promise.all(
+      const results = await Promise.allSettled(
         keywords.map((keyword: string) =>
           prisma.article.create({
             data: {
@@ -727,9 +729,12 @@ export class ArticleController {
         )
       );
 
+      const succeeded = results.filter(r => r.status === 'fulfilled').map(r => (r as PromiseFulfilledResult<any>).value);
+      const failedCount = results.filter(r => r.status === 'rejected').length;
+
       res.json({
-        message: `Created ${articles.length} articles`,
-        articleIds: articles.map((a) => a.id),
+        message: `Created ${succeeded.length} articles${failedCount > 0 ? `, ${failedCount} failed` : ''}`,
+        articleIds: succeeded.map((a: any) => a.id),
       });
     } catch (error) {
       throw error;

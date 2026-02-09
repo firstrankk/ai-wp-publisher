@@ -8,6 +8,20 @@ import routes from './routes/index.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { startCleanupJob } from './services/cleanup.service.js';
 
+// Validate required environment variables
+const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'ENCRYPTION_KEY', 'CORS_ORIGIN'] as const;
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`FATAL: Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
+
+if (process.env.ENCRYPTION_KEY!.length !== 64) {
+  console.error('FATAL: ENCRYPTION_KEY must be 64 hex characters (32 bytes)');
+  process.exit(1);
+}
+
 // Initialize Prisma
 export const prisma = new PrismaClient();
 
@@ -18,7 +32,7 @@ const PORT = process.env.PORT || 4000;
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN,
   credentials: true,
 }));
 

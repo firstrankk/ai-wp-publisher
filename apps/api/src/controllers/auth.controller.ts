@@ -44,11 +44,10 @@ export class AuthController {
         },
       });
 
-      // Generate token (30 days for development)
       const token = jwt.sign(
         { userId: user.id },
-        process.env.JWT_SECRET!,
-        { expiresIn: '30d' }
+        process.env.JWT_SECRET as string,
+        { expiresIn: '7d' }
       );
 
       // Log activity
@@ -86,11 +85,10 @@ export class AuthController {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Generate token (30 days for development)
       const token = jwt.sign(
         { userId: user.id },
-        process.env.JWT_SECRET!,
-        { expiresIn: '30d' }
+        process.env.JWT_SECRET as string,
+        { expiresIn: '7d' }
       );
 
       res.json({

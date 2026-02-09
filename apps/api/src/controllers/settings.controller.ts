@@ -34,7 +34,7 @@ export class SettingsController {
         activityLogRetentionDays: parseInt(settingsMap.activity_log_retention_days, 10),
       });
     } catch (error) {
-      throw error;
+      res.status(500).json({ error: 'Failed to get cleanup settings' });
     }
   }
 
@@ -69,8 +69,12 @@ export class SettingsController {
         cleanupRetentionDays: data.cleanupRetentionDays,
         activityLogRetentionDays: data.activityLogRetentionDays,
       });
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error?.issues) {
+        res.status(400).json({ error: error.issues[0]?.message || 'Validation failed' });
+        return;
+      }
+      res.status(500).json({ error: 'Failed to update cleanup settings' });
     }
   }
 
@@ -122,7 +126,7 @@ export class SettingsController {
         logsDeleted: deletedLogs.count,
       });
     } catch (error) {
-      throw error;
+      res.status(500).json({ error: 'Failed to run cleanup' });
     }
   }
 }
