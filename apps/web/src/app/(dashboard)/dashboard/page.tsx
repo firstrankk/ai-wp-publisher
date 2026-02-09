@@ -26,7 +26,7 @@ import { dashboardApi } from '@/lib/api';
 import { formatNumber } from '@/lib/utils';
 
 const CHART_COLORS = [
-  '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+  '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899',
   '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
 ];
 
@@ -67,8 +67,8 @@ export default function DashboardPage() {
       title: 'สัปดาห์นี้',
       value: stats?.weekPosts || 0,
       icon: Clock,
-      gradient: 'from-blue-500 to-blue-600',
-      glow: 'shadow-[0_0_20px_rgba(59,130,246,0.3)]',
+      gradient: 'from-red-500 to-red-600',
+      glow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)]',
     },
     {
       title: 'รอดำเนินการ',
@@ -90,21 +90,21 @@ export default function DashboardPage() {
     {
       title: 'สร้างบทความใหม่',
       description: 'เขียนและเผยแพร่บทความ',
-      href: '/dashboard/articles/new',
+      href: '/articles/new',
       icon: FilePlus,
       gradient: 'from-neon-500 to-neon-600',
     },
     {
       title: 'Bulk Create',
       description: 'สร้างบทความจำนวนมาก',
-      href: '/dashboard/bulk-create',
+      href: '/bulk-create',
       icon: FileStack,
       gradient: 'from-warning-500 to-warning-600',
     },
     {
       title: 'เพิ่มเว็บไซต์',
       description: 'เชื่อมต่อเว็บไซต์ใหม่',
-      href: '/dashboard/sites',
+      href: '/sites',
       icon: Globe,
       gradient: 'from-success-500 to-success-600',
     },

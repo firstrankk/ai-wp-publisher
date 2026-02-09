@@ -22,12 +22,12 @@ import { useSidebar } from '@/app/(dashboard)/layout';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, color: '#3b82f6' },  // blue
-  { name: 'Sites', href: '/dashboard/sites', icon: Globe, color: '#10b981' },          // emerald
-  { name: 'Articles', href: '/dashboard/articles', icon: FileText, color: '#f59e0b' }, // amber
-  { name: 'Bulk Create', href: '/dashboard/bulk-create', icon: FileStack, color: '#8b5cf6', isNew: true }, // violet
-  { name: 'API Keys', href: '/dashboard/api-keys', icon: Key, color: '#f97316' },      // orange
-  { name: 'Users', href: '/dashboard/users', icon: Users, color: '#06b6d4' },          // cyan
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings, color: '#6b7280' }, // gray
+  { name: 'Sites', href: '/sites', icon: Globe, color: '#10b981' },          // emerald
+  { name: 'Articles', href: '/articles', icon: FileText, color: '#f59e0b' }, // amber
+  { name: 'Bulk Create', href: '/bulk-create', icon: FileStack, color: '#8b5cf6', isNew: true }, // violet
+  { name: 'API Keys', href: '/api-keys', icon: Key, color: '#f97316' },      // orange
+  { name: 'Users', href: '/users', icon: Users, color: '#06b6d4' },          // cyan
+  { name: 'Settings', href: '/settings', icon: Settings, color: '#6b7280' }, // gray
 ];
 
 export function Sidebar() {
@@ -37,7 +37,6 @@ export function Sidebar() {
 
   const handleLogout = () => {
     clearAuth();
-    window.location.href = '/login';
   };
 
   const handleNavClick = () => {
@@ -66,7 +65,7 @@ export function Sidebar() {
         >
           <div
             className="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0"
-            style={{ backgroundColor: '#2563eb' }}
+            style={{ backgroundColor: '#dc2626' }}
           >
             <Sparkles className="h-5 w-5" style={{ color: '#ffffff' }} />
           </div>
@@ -122,8 +121,8 @@ export function Sidebar() {
                 isCollapsed && 'justify-center px-2'
               )}
               style={{
-                backgroundColor: isActive ? '#eff6ff' : 'transparent',
-                color: isActive ? '#2563eb' : '#4b5563',
+                backgroundColor: isActive ? '#fef2f2' : 'transparent',
+                color: isActive ? '#dc2626' : '#4b5563',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
@@ -139,7 +138,7 @@ export function Sidebar() {
             >
               <Icon
                 className="h-5 w-5 flex-shrink-0"
-                style={{ color: (item as any).color || (isActive ? '#2563eb' : '#9ca3af') }}
+                style={{ color: (item as any).color || (isActive ? '#dc2626' : '#9ca3af') }}
               />
               {!isCollapsed && (
                 <span className="flex items-center gap-2">
@@ -163,7 +162,7 @@ export function Sidebar() {
           <div className="flex flex-col items-center gap-3">
             <div
               className="flex h-10 w-10 items-center justify-center rounded-full font-bold"
-              style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
+              style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
               title={user?.name || 'User'}
             >
               {user?.name?.charAt(0).toUpperCase() || 'U'}
@@ -182,7 +181,7 @@ export function Sidebar() {
             <div className="flex items-center gap-3">
               <div
                 className="flex h-10 w-10 items-center justify-center rounded-full font-bold flex-shrink-0"
-                style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
+                style={{ backgroundColor: '#dc2626', color: '#ffffff' }}
               >
                 {user?.name?.charAt(0).toUpperCase() || 'U'}
               </div>

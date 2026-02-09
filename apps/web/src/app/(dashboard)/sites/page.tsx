@@ -137,7 +137,7 @@ export default function SitesPage() {
                   <tr>
                     <td colSpan={5} className="px-4 py-12 text-center">
                       <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent" />
+                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-red-600 border-t-transparent" />
                       </div>
                     </td>
                   </tr>
@@ -152,8 +152,8 @@ export default function SitesPage() {
                     <tr key={site.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-blue-50 border border-blue-100">
-                            <Globe className="h-4 w-4 text-blue-600" />
+                          <div className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-red-50 border border-red-100">
+                            <Globe className="h-4 w-4 text-red-600" />
                           </div>
                           <div className="min-w-0">
                             <p className="font-medium text-gray-900">{site.name}</p>

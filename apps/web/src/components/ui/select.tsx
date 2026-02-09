@@ -72,7 +72,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
-            'flex h-11 w-full items-center justify-between rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
+            'flex h-11 w-full items-center justify-between rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
             className
           )}
           style={{
@@ -103,8 +103,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
                   onMouseLeave={() => setHoveredIndex(null)}
                   className="w-full px-4 py-2.5 text-left text-sm transition-colors"
                   style={{
-                    backgroundColor: selectedValue === '' ? '#eff6ff' : hoveredIndex === -1 ? '#f3f4f6' : 'transparent',
-                    color: selectedValue === '' ? '#2563eb' : hoveredIndex === -1 ? '#1f2937' : '#6b7280'
+                    backgroundColor: selectedValue === '' ? '#fef2f2' : hoveredIndex === -1 ? '#f3f4f6' : 'transparent',
+                    color: selectedValue === '' ? '#dc2626' : hoveredIndex === -1 ? '#1f2937' : '#6b7280'
                   }}
                 >
                   {placeholder}
@@ -119,8 +119,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
                   onMouseLeave={() => setHoveredIndex(null)}
                   className="w-full px-4 py-2.5 text-left text-sm transition-colors"
                   style={{
-                    backgroundColor: selectedValue === option.value ? '#eff6ff' : hoveredIndex === index ? '#f3f4f6' : 'transparent',
-                    color: selectedValue === option.value ? '#2563eb' : hoveredIndex === index ? '#1f2937' : '#374151'
+                    backgroundColor: selectedValue === option.value ? '#fef2f2' : hoveredIndex === index ? '#f3f4f6' : 'transparent',
+                    color: selectedValue === option.value ? '#dc2626' : hoveredIndex === index ? '#1f2937' : '#374151'
                   }}
                 >
                   {option.label}

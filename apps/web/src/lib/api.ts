@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getSession, signOut } from 'next-auth/react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -9,10 +10,11 @@ export const api = axios.create({
   },
 });
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
+// Add auth token from NextAuth session to requests
+api.interceptors.request.use(async (config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
+    const session = await getSession();
+    const token = (session?.user as any)?.apiToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,8 +28,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        signOut({ callbackUrl: '/login' });
       }
     }
     return Promise.reject(error);

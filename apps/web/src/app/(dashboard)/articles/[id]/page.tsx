@@ -185,7 +185,7 @@ export default function ArticleDetailPage() {
     onSuccess: () => {
       toast.success('ลบบทความแล้ว');
       queryClient.invalidateQueries({ queryKey: ['articles'] });
-      router.push('/dashboard/articles');
+      router.push('/articles');
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || 'ลบล้มเหลว');
@@ -277,14 +277,14 @@ export default function ArticleDetailPage() {
         <Header
           title="บทความ"
           action={
-            <Button variant="outline" onClick={() => router.push('/dashboard/articles')}>
+            <Button variant="outline" onClick={() => router.push('/articles')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               กลับ
             </Button>
           }
         />
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-red-600 border-t-transparent" />
         </div>
       </div>
     );
@@ -296,7 +296,7 @@ export default function ArticleDetailPage() {
         <Header
           title="บทความ"
           action={
-            <Button variant="outline" onClick={() => router.push('/dashboard/articles')}>
+            <Button variant="outline" onClick={() => router.push('/articles')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               กลับ
             </Button>
@@ -316,7 +316,7 @@ export default function ArticleDetailPage() {
         title={article.title || article.keyword}
         description={article.title ? article.keyword : undefined}
         action={
-          <Button variant="outline" onClick={() => router.push('/dashboard/articles')}>
+          <Button variant="outline" onClick={() => router.push('/articles')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">กลับ</span>
           </Button>
@@ -400,7 +400,7 @@ export default function ArticleDetailPage() {
             <div className="flex items-center justify-between">
               <CardTitle>ข้อมูลบทความ</CardTitle>
               {isEditing && (
-                <span className="text-sm text-blue-600 font-medium">กำลังแก้ไข</span>
+                <span className="text-sm text-red-600 font-medium">กำลังแก้ไข</span>
               )}
             </div>
           </CardHeader>
@@ -491,7 +491,7 @@ export default function ArticleDetailPage() {
                       onChange={(e) => setEditForm((prev) => ({ ...prev, content: e.target.value }))}
                       placeholder="เนื้อหาบทความ..."
                       rows={12}
-                      className="flex w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all duration-200 font-mono"
+                      className="flex w-full rounded-lg border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all duration-200 font-mono"
                       style={{
                         backgroundColor: '#ffffff',
                         color: '#1f2937',
@@ -556,8 +556,8 @@ export default function ArticleDetailPage() {
                 {article.scheduledAt && (
                   <div>
                     <p className="text-sm font-medium text-gray-500">ตั้งเวลาเผยแพร่</p>
-                    <p className="mt-1 text-blue-600 flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
+                    <p className="mt-1 text-gray-900 flex items-center gap-1">
+                      <Calendar className="h-4 w-4 text-gray-400" />
                       {formatDate(article.scheduledAt)}
                     </p>
                   </div>
@@ -604,7 +604,7 @@ export default function ArticleDetailPage() {
             </CardHeader>
             <CardContent>
               <div
-                className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600"
+                className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-red-600"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.content) }}
               />
             </CardContent>
@@ -658,7 +658,7 @@ export default function ArticleDetailPage() {
           <label
             className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
               !deleteDialog.deleteFromWP
-                ? 'border-blue-500 bg-blue-50'
+                ? 'border-red-500 bg-red-50'
                 : 'border-gray-200 hover:bg-gray-50'
             }`}
             onClick={() => setDeleteDialog((prev) => ({ ...prev, deleteFromWP: false }))}

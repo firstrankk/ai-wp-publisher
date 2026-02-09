@@ -95,7 +95,7 @@ export default function UsersPage() {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
                     <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600" />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -110,7 +110,7 @@ export default function UsersPage() {
                   <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-700 font-medium">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-700 font-medium">
                           {user.name?.charAt(0).toUpperCase()}
                         </div>
                         <div>

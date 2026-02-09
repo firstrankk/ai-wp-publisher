@@ -266,12 +266,12 @@ export function BulkImportForm({ onSuccess, onCancel }: BulkImportFormProps) {
   if (isImporting) {
     return (
       <div className="py-12 text-center space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600 mx-auto" />
+        <Loader2 className="h-10 w-10 animate-spin text-red-600 mx-auto" />
         <p className="text-gray-700 font-medium">กำลังนำเข้าเว็บไซต์...</p>
         <div className="max-w-xs mx-auto">
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-600 rounded-full transition-all duration-300"
+              className="h-full bg-red-600 rounded-full transition-all duration-300"
               style={{
                 width: progress.total > 0
                   ? `${(progress.current / progress.total) * 100}%`
@@ -294,7 +294,7 @@ export function BulkImportForm({ onSuccess, onCancel }: BulkImportFormProps) {
         <button
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'csv'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-red-600 text-red-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
           onClick={() => {
@@ -310,7 +310,7 @@ export function BulkImportForm({ onSuccess, onCancel }: BulkImportFormProps) {
         <button
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             activeTab === 'text'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-red-600 text-red-600'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
           onClick={() => {
@@ -331,7 +331,7 @@ export function BulkImportForm({ onSuccess, onCancel }: BulkImportFormProps) {
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
               isDragging
-                ? 'border-blue-400 bg-blue-50'
+                ? 'border-red-400 bg-red-50'
                 : 'border-gray-300 hover:border-gray-400'
             }`}
             onDragOver={(e) => {
@@ -348,7 +348,7 @@ export function BulkImportForm({ onSuccess, onCancel }: BulkImportFormProps) {
             ) : (
               <>
                 <p className="text-sm text-gray-600">
-                  ลากไฟล์ CSV มาวางที่นี่ หรือ <span className="text-blue-600 font-medium">เลือกไฟล์</span>
+                  ลากไฟล์ CSV มาวางที่นี่ หรือ <span className="text-red-600 font-medium">เลือกไฟล์</span>
                 </p>
                 <p className="text-xs text-gray-400 mt-1">รองรับไฟล์ .csv</p>
               </>
@@ -363,7 +363,7 @@ export function BulkImportForm({ onSuccess, onCancel }: BulkImportFormProps) {
           </div>
           <button
             type="button"
-            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700"
+            className="inline-flex items-center text-sm text-red-600 hover:text-red-700"
             onClick={downloadTemplate}
           >
             <Download className="h-3.5 w-3.5 mr-1" />
@@ -379,7 +379,7 @@ export function BulkImportForm({ onSuccess, onCancel }: BulkImportFormProps) {
             วางข้อมูลทีละบรรทัด format: <code className="bg-gray-100 px-1 py-0.5 rounded text-xs">name,url,username,appPassword</code>
           </p>
           <textarea
-            className="w-full h-40 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-40 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono resize-none focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
             placeholder={`name,url,username,appPassword\nบล็อกสุขภาพ,https://health-blog.com,admin,xxxx xxxx xxxx xxxx\nเว็บท่องเที่ยว,https://travel-site.com,editor,yyyy yyyy yyyy yyyy`}
             value={textValue}
             onChange={(e) => handleTextChange(e.target.value)}

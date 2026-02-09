@@ -129,7 +129,7 @@ export default function ApiKeysPage() {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
                     <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600" />
                     </div>
                   </TableCell>
                 </TableRow>

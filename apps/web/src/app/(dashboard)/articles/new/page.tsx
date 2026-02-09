@@ -266,7 +266,7 @@ export default function NewArticlePage() {
       for (const pos of selectedPositions) {
         const before = result.substring(0, pos.index);
         const after = result.substring(pos.index + pos.match.length);
-        const linkedText = `<a href="${mapping.url}" target="_blank" rel="noopener" style="color:#2563eb;text-decoration:underline;">${pos.match}</a>`;
+        const linkedText = `<a href="${mapping.url}" target="_blank" rel="noopener" style="color:#dc2626;text-decoration:underline;">${pos.match}</a>`;
         result = before + linkedText + after;
       }
     }
@@ -386,7 +386,7 @@ export default function NewArticlePage() {
         title="สร้างบทความใหม่"
         description="สร้างและเผยแพร่บทความด้วย AI"
         action={
-          <Link href="/dashboard/articles">
+          <Link href="/articles">
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
               กลับ
@@ -484,7 +484,7 @@ export default function NewArticlePage() {
                           <span
                             key={tag}
                             className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
-                            style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}
+                            style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}
                           >
                             {tag}
                             <button
@@ -522,7 +522,7 @@ export default function NewArticlePage() {
                                   style={{ borderColor: '#d1d5db', color: '#4b5563' }}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.style.backgroundColor = '#f3f4f6';
-                                    e.currentTarget.style.borderColor = '#2563eb';
+                                    e.currentTarget.style.borderColor = '#dc2626';
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.style.backgroundColor = 'transparent';
@@ -576,7 +576,7 @@ export default function NewArticlePage() {
                   {/* SEO Link Mappings */}
                   <div className="border-t pt-4" style={{ borderColor: '#e5e7eb' }}>
                     <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                      <Link2 className="h-4 w-4" style={{ color: '#2563eb' }} />
+                      <Link2 className="h-4 w-4" style={{ color: '#dc2626' }} />
                       SEO Links (Auto-link keywords)
                     </label>
                     <p className="text-xs mb-3" style={{ color: '#6b7280' }}>
@@ -723,7 +723,7 @@ export default function NewArticlePage() {
                               }}
                               className="flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all"
                               style={{
-                                backgroundColor: backgroundType === 'solid' ? '#2563eb' : 'transparent',
+                                backgroundColor: backgroundType === 'solid' ? '#dc2626' : 'transparent',
                                 color: backgroundType === 'solid' ? '#ffffff' : '#6b7280'
                               }}
                             >
@@ -737,7 +737,7 @@ export default function NewArticlePage() {
                               }}
                               className="flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all"
                               style={{
-                                backgroundColor: backgroundType === 'gradient' ? '#2563eb' : 'transparent',
+                                backgroundColor: backgroundType === 'gradient' ? '#dc2626' : 'transparent',
                                 color: backgroundType === 'gradient' ? '#ffffff' : '#6b7280'
                               }}
                             >
@@ -748,7 +748,7 @@ export default function NewArticlePage() {
                               onClick={() => setBackgroundType('custom')}
                               className="flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all"
                               style={{
-                                backgroundColor: backgroundType === 'custom' ? '#2563eb' : 'transparent',
+                                backgroundColor: backgroundType === 'custom' ? '#dc2626' : 'transparent',
                                 color: backgroundType === 'custom' ? '#ffffff' : '#6b7280'
                               }}
                             >
@@ -766,8 +766,8 @@ export default function NewArticlePage() {
                                   onClick={() => setSelectedPreset(preset)}
                                   className="relative p-3 rounded-xl border-2 transition-all"
                                   style={{
-                                    borderColor: selectedPreset.id === preset.id ? '#2563eb' : '#e5e7eb',
-                                    boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(37, 99, 235, 0.2)' : 'none',
+                                    borderColor: selectedPreset.id === preset.id ? '#dc2626' : '#e5e7eb',
+                                    boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(220, 38, 38, 0.2)' : 'none',
                                     backgroundColor: (preset as any).bg,
                                   }}
                                   title={preset.name}
@@ -790,8 +790,8 @@ export default function NewArticlePage() {
                                   onClick={() => setSelectedPreset(preset)}
                                   className="relative p-3 rounded-xl border-2 transition-all"
                                   style={{
-                                    borderColor: selectedPreset.id === preset.id ? '#2563eb' : '#e5e7eb',
-                                    boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(37, 99, 235, 0.2)' : 'none',
+                                    borderColor: selectedPreset.id === preset.id ? '#dc2626' : '#e5e7eb',
+                                    boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(220, 38, 38, 0.2)' : 'none',
                                     background: preset.gradient
                                       ? `linear-gradient(${preset.gradient.angle || 135}deg, ${preset.gradient.colors.join(', ')})`
                                       : (preset as any).bg,
@@ -860,8 +860,8 @@ export default function NewArticlePage() {
                                   className="relative w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center"
                                   style={{
                                     backgroundColor: preset.color,
-                                    borderColor: textColor === preset.color ? '#2563eb' : '#d1d5db',
-                                    boxShadow: textColor === preset.color ? '0 0 0 2px rgba(37, 99, 235, 0.3)' : 'none'
+                                    borderColor: textColor === preset.color ? '#dc2626' : '#d1d5db',
+                                    boxShadow: textColor === preset.color ? '0 0 0 2px rgba(220, 38, 38, 0.3)' : 'none'
                                   }}
                                   title={preset.name}
                                 >
@@ -907,7 +907,7 @@ export default function NewArticlePage() {
                         {/* SEO Link Mappings */}
                         <div className="border-t pt-4" style={{ borderColor: '#e5e7eb' }}>
                           <label className="flex items-center gap-2 text-sm font-medium mb-2" style={{ color: '#374151' }}>
-                            <Link2 className="h-4 w-4" style={{ color: '#2563eb' }} />
+                            <Link2 className="h-4 w-4" style={{ color: '#dc2626' }} />
                             SEO Links (Auto-link keywords)
                           </label>
                           <p className="text-xs mb-3" style={{ color: '#6b7280' }}>
@@ -1085,7 +1085,7 @@ export default function NewArticlePage() {
                     <p className="italic" style={{ color: '#4b5563' }}>{article.excerpt}</p>
                   )}
                   <div
-                    className="prose prose-sm max-w-none [&_a]:text-blue-600 [&_a]:underline [&_a]:font-medium [&_h1]:text-blue-700 [&_h1]:font-bold [&_h1]:text-2xl [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-emerald-600 [&_h2]:font-bold [&_h2]:text-xl [&_h2]:mt-5 [&_h2]:mb-2 [&_h3]:text-violet-600 [&_h3]:font-semibold [&_h3]:text-lg [&_h3]:mt-4 [&_h3]:mb-2 [&_h4]:text-orange-600 [&_h4]:font-semibold [&_h4]:text-base [&_h4]:mt-3 [&_h4]:mb-1"
+                    className="prose prose-sm max-w-none [&_a]:text-red-600 [&_a]:underline [&_a]:font-medium [&_h1]:text-blue-700 [&_h1]:font-bold [&_h1]:text-2xl [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-emerald-600 [&_h2]:font-bold [&_h2]:text-xl [&_h2]:mt-5 [&_h2]:mb-2 [&_h3]:text-violet-600 [&_h3]:font-semibold [&_h3]:text-lg [&_h3]:mt-4 [&_h3]:mb-2 [&_h4]:text-orange-600 [&_h4]:font-semibold [&_h4]:text-base [&_h4]:mt-3 [&_h4]:mb-1"
                     style={{ color: '#374151' }}
                     dangerouslySetInnerHTML={{ __html: article.content ? DOMPurify.sanitize(processContentForPreview(article.content)) : '' }}
                   />

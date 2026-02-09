@@ -158,8 +158,8 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: '#f9fafb' }}>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: '#dbeafe' }}>
-                <User className="h-5 w-5" style={{ color: '#2563eb' }} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: '#fee2e2' }}>
+                <User className="h-5 w-5" style={{ color: '#dc2626' }} />
               </div>
               <div>
                 <p className="text-xs" style={{ color: '#9ca3af' }}>ชื่อ</p>
@@ -167,8 +167,8 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: '#f9fafb' }}>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: '#dbeafe' }}>
-                <Mail className="h-5 w-5" style={{ color: '#2563eb' }} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: '#fee2e2' }}>
+                <Mail className="h-5 w-5" style={{ color: '#dc2626' }} />
               </div>
               <div>
                 <p className="text-xs" style={{ color: '#9ca3af' }}>อีเมล</p>
@@ -176,8 +176,8 @@ export default function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: '#f9fafb' }}>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: '#dbeafe' }}>
-                <Shield className="h-5 w-5" style={{ color: '#2563eb' }} />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: '#fee2e2' }}>
+                <Shield className="h-5 w-5" style={{ color: '#dc2626' }} />
               </div>
               <div>
                 <p className="text-xs" style={{ color: '#9ca3af' }}>สิทธิ์การใช้งาน</p>
@@ -206,7 +206,7 @@ export default function SettingsPage() {
             <CardContent>
               {!settingsLoaded ? (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600" />
                 </div>
               ) : (
                 <form onSubmit={handleCleanupSubmit(onCleanupSubmit)} className="space-y-5">
@@ -238,7 +238,7 @@ export default function SettingsPage() {
                       type="button"
                       onClick={() => setCleanupEnabled(!cleanupEnabled)}
                       className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                      style={{ backgroundColor: cleanupEnabled ? '#2563eb' : '#d1d5db' }}
+                      style={{ backgroundColor: cleanupEnabled ? '#dc2626' : '#d1d5db' }}
                     >
                       <span
                         className="inline-block h-4 w-4 rounded-full bg-white transition-transform shadow-sm"
@@ -297,10 +297,10 @@ export default function SettingsPage() {
                   {/* Info Box */}
                   <div
                     className="flex gap-3 p-3 rounded-lg"
-                    style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}
+                    style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}
                   >
-                    <Info className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: '#2563eb' }} />
-                    <div className="text-xs space-y-1" style={{ color: '#1e40af' }}>
+                    <Info className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: '#dc2626' }} />
+                    <div className="text-xs space-y-1" style={{ color: '#991b1b' }}>
                       <p>ลบเฉพาะบทความสถานะ &quot;Published&quot; เท่านั้น บทความที่เป็น Draft, Generating, Ready หรือ Failed จะไม่ถูกลบ</p>
                       <p>บทความบน WordPress จะยังคงอยู่ตามปกติ ลบเฉพาะข้อมูลในระบบนี้เท่านั้น</p>
                     </div>

@@ -13,7 +13,6 @@ import {
   Trash2,
   Sparkles,
   Send,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CheckSquare,
@@ -109,11 +108,11 @@ export default function ArticlesPage() {
     mutationFn: ({ id, status }: { id: string; status: 'draft' | 'publish' }) =>
       articlesApi.publish(id, status),
     onSuccess: (_, variables) => {
-      toast.success(variables.status === 'publish' ? 'Article published!' : 'Article saved as draft');
+      toast.success(variables.status === 'publish' ? 'เผยแพร่บทความแล้ว!' : 'บันทึกเป็นแบบร่างแล้ว');
       queryClient.invalidateQueries({ queryKey: ['articles'] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Publish failed');
+      toast.error(error.response?.data?.error || 'เผยแพร่ล้มเหลว');
     },
   });
 
@@ -186,25 +185,25 @@ export default function ArticlesPage() {
           size="icon"
           onClick={() => setIsOpen(!isOpen)}
           disabled={publishMutation.isPending}
-          title="Publish"
-          className="flex items-center"
+          title="เผยแพร่"
         >
-          <Send className="h-4 w-4" />
-          <ChevronDown className="h-3 w-3 ml-0.5" />
+          <Send className="h-4 w-4 text-emerald-500" />
         </Button>
         {isOpen && (
-          <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+          <div className="absolute right-0 mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden py-1">
             <button
               onClick={() => handlePublish('publish')}
-              className="w-full px-4 py-2.5 text-left text-sm font-medium text-green-600 hover:bg-gray-50 transition-colors"
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
             >
-              Publish Now
+              <Send className="h-3.5 w-3.5 text-emerald-500" />
+              เผยแพร่ทันที
             </button>
             <button
               onClick={() => handlePublish('draft')}
-              className="w-full px-4 py-2.5 text-left text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
             >
-              Save as Draft
+              <FileText className="h-3.5 w-3.5 text-gray-400" />
+              บันทึกแบบร่าง
             </button>
           </div>
         )}
@@ -228,7 +227,7 @@ export default function ArticlesPage() {
           {STATUS_LABELS[status as keyof typeof STATUS_LABELS] || status}
         </Badge>
         {status === 'SCHEDULED' && scheduledAt && (
-          <span className="text-xs text-blue-600">
+          <span className="text-xs text-gray-600">
             {formatDate(scheduledAt)}
           </span>
         )}
@@ -239,9 +238,9 @@ export default function ArticlesPage() {
   // Mobile card component
   const ArticleCard = ({ article }: { article: any }) => (
     <div
-      onClick={() => router.push(`/dashboard/articles/${article.id}`)}
+      onClick={() => router.push(`/articles/${article.id}`)}
       className={`p-4 border-b border-gray-100 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors ${
-        selectedIds.has(article.id) ? 'bg-blue-50' : ''
+        selectedIds.has(article.id) ? 'bg-red-50' : ''
       }`}
     >
       <div className="flex items-start gap-3">
@@ -250,7 +249,7 @@ export default function ArticlesPage() {
           className="mt-1 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
         >
           {selectedIds.has(article.id) ? (
-            <CheckSquare className="h-5 w-5 text-blue-600" />
+            <CheckSquare className="h-5 w-5 text-red-600" />
           ) : (
             <Square className="h-5 w-5" />
           )}
@@ -310,7 +309,7 @@ export default function ArticlesPage() {
             {article.wpPostUrl && (
               <a href={article.wpPostUrl} target="_blank" rel="noopener noreferrer">
                 <Button variant="outline" size="sm" className="h-8 text-xs">
-                  <ExternalLink className="h-3 w-3 mr-1 text-blue-500" />
+                  <ExternalLink className="h-3 w-3 mr-1 text-red-500" />
                   View
                 </Button>
               </a>
@@ -335,7 +334,7 @@ export default function ArticlesPage() {
         title="Articles"
         description="จัดการและเผยแพร่บทความ"
         action={
-          <Link href="/dashboard/articles/new">
+          <Link href="/articles/new">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">สร้างบทความ</span>
@@ -366,14 +365,14 @@ export default function ArticlesPage() {
                 value={statusFilter}
                 onChange={(e) => handleStatusFilter(e.target.value)}
                 options={[
-                  { value: '', label: 'All Status' },
-                  { value: 'DRAFT', label: 'Draft' },
-                  { value: 'GENERATING', label: 'Generating' },
-                  { value: 'READY', label: 'Ready' },
-                  { value: 'PUBLISHING', label: 'Publishing' },
-                  { value: 'PUBLISHED', label: 'Published' },
-                  { value: 'SCHEDULED', label: 'Scheduled' },
-                  { value: 'FAILED', label: 'Failed' },
+                  { value: '', label: 'ทุกสถานะ' },
+                  { value: 'DRAFT', label: 'แบบร่าง' },
+                  { value: 'GENERATING', label: 'กำลังสร้าง' },
+                  { value: 'READY', label: 'พร้อมโพสต์' },
+                  { value: 'PUBLISHING', label: 'กำลังเผยแพร่' },
+                  { value: 'PUBLISHED', label: 'เผยแพร่แล้ว' },
+                  { value: 'SCHEDULED', label: 'ตั้งเวลา' },
+                  { value: 'FAILED', label: 'ล้มเหลว' },
                 ]}
                 className="w-full sm:w-36"
               />
@@ -383,7 +382,7 @@ export default function ArticlesPage() {
                 value={siteFilter}
                 onChange={(e) => handleSiteFilter(e.target.value)}
                 options={[
-                  { value: '', label: 'All Sites' },
+                  { value: '', label: 'ทุกเว็บไซต์' },
                   ...(sites?.data?.map((site: any) => ({
                     value: site.id,
                     label: site.name,
@@ -425,31 +424,31 @@ export default function ArticlesPage() {
                       className="text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       {isAllSelected ? (
-                        <CheckSquare className="h-5 w-5 text-blue-600" />
+                        <CheckSquare className="h-5 w-5 text-red-600" />
                       ) : isSomeSelected ? (
-                        <MinusSquare className="h-5 w-5 text-blue-600" />
+                        <MinusSquare className="h-5 w-5 text-red-600" />
                       ) : (
                         <Square className="h-5 w-5" />
                       )}
                     </button>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Article
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 tracking-wider">
+                    บทความ
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Site
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 tracking-wider">
+                    เว็บไซต์
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 tracking-wider">
+                    สถานะ
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Tone
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 tracking-wider">
+                    โทน
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Created
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 tracking-wider">
+                    วันที่สร้าง
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 tracking-wider">
+                    จัดการ
                   </th>
                 </tr>
               </thead>
@@ -458,22 +457,22 @@ export default function ArticlesPage() {
                   <tr>
                     <td colSpan={7} className="px-4 py-12 text-center">
                       <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent" />
+                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-red-600 border-t-transparent" />
                       </div>
                     </td>
                   </tr>
                 ) : articleList.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
-                      No articles found
+                      ไม่พบบทความ
                     </td>
                   </tr>
                 ) : (
                   articleList.map((article: any) => (
                     <tr
                       key={article.id}
-                      onClick={() => router.push(`/dashboard/articles/${article.id}`)}
-                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${selectedIds.has(article.id) ? 'bg-blue-50' : ''}`}
+                      onClick={() => router.push(`/articles/${article.id}`)}
+                      className={`hover:bg-gray-50 transition-colors cursor-pointer ${selectedIds.has(article.id) ? 'bg-red-50' : ''}`}
                     >
                       <td className="px-4 py-3">
                         <button
@@ -481,7 +480,7 @@ export default function ArticlesPage() {
                           className="text-gray-400 hover:text-gray-600 transition-colors"
                         >
                           {selectedIds.has(article.id) ? (
-                            <CheckSquare className="h-5 w-5 text-blue-600" />
+                            <CheckSquare className="h-5 w-5 text-red-600" />
                           ) : (
                             <Square className="h-5 w-5" />
                           )}
@@ -489,8 +488,8 @@ export default function ArticlesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-blue-50 border border-blue-100">
-                            <FileText className="h-4 w-4 text-blue-600" />
+                          <div className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-red-50 border border-red-100">
+                            <FileText className="h-4 w-4 text-red-600" />
                           </div>
                           <div className="min-w-0 max-w-[280px]">
                             <p className="font-medium text-gray-900 truncate">
@@ -528,7 +527,7 @@ export default function ArticlesPage() {
                               size="icon"
                               onClick={() => generateMutation.mutate(article.id)}
                               disabled={generateMutation.isPending}
-                              title="Generate"
+                              title="สร้างบทความ"
                             >
                               <Sparkles className="h-4 w-4 text-purple-500" />
                             </Button>
@@ -541,15 +540,15 @@ export default function ArticlesPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => articlesApi.retry(article.id)}
-                              title="Retry"
+                              title="ลองใหม่"
                             >
                               <RefreshCw className="h-4 w-4 text-orange-500" />
                             </Button>
                           )}
                           {article.wpPostUrl && (
                             <a href={article.wpPostUrl} target="_blank" rel="noopener noreferrer">
-                              <Button variant="ghost" size="icon" title="View on site">
-                                <ExternalLink className="h-4 w-4 text-blue-500" />
+                              <Button variant="ghost" size="icon" title="ดูบนเว็บไซต์">
+                                <ExternalLink className="h-4 w-4 text-red-500" />
                               </Button>
                             </a>
                           )}
@@ -557,7 +556,7 @@ export default function ArticlesPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => openDeleteDialog(article.id)}
-                            title="Delete"
+                            title="ลบ"
                           >
                             <Trash2 className="h-4 w-4 text-red-400 hover:text-red-600" />
                           </Button>
@@ -581,9 +580,9 @@ export default function ArticlesPage() {
                 className="flex items-center gap-2 text-sm text-gray-600"
               >
                 {isAllSelected ? (
-                  <CheckSquare className="h-5 w-5 text-blue-600" />
+                  <CheckSquare className="h-5 w-5 text-red-600" />
                 ) : isSomeSelected ? (
-                  <MinusSquare className="h-5 w-5 text-blue-600" />
+                  <MinusSquare className="h-5 w-5 text-red-600" />
                 ) : (
                   <Square className="h-5 w-5 text-gray-400" />
                 )}
@@ -598,7 +597,7 @@ export default function ArticlesPage() {
           {isLoading ? (
             <div className="px-4 py-12 text-center">
               <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent" />
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-red-600 border-t-transparent" />
               </div>
             </div>
           ) : articleList.length === 0 ? (
@@ -658,7 +657,7 @@ export default function ArticlesPage() {
           <label
             className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
               !deleteDialog.deleteFromWP
-                ? 'border-blue-500 bg-blue-50'
+                ? 'border-red-500 bg-red-50'
                 : 'border-gray-200 hover:bg-gray-50'
             }`}
             onClick={() => setDeleteDialog((prev) => ({ ...prev, deleteFromWP: false }))}

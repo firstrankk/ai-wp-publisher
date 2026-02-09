@@ -362,7 +362,7 @@ export default function BulkCreatePage() {
       case 'creating':
       case 'generating':
       case 'scheduling':
-        return <Loader2 className="h-4 w-4 animate-spin" style={{ color: '#2563eb' }} />;
+        return <Loader2 className="h-4 w-4 animate-spin" style={{ color: '#dc2626' }} />;
       case 'done':
         return <CheckCircle className="h-4 w-4" style={{ color: '#22c55e' }} />;
       case 'error':
@@ -466,7 +466,7 @@ export default function BulkCreatePage() {
                         name="tagMode"
                         checked={tagMode === 'ai'}
                         onChange={() => setTagMode('ai')}
-                        className="text-blue-600"
+                        className="text-red-600"
                       />
                       <span className="text-sm">AI Generate อัตโนมัติ (แนะนำ)</span>
                     </label>
@@ -476,7 +476,7 @@ export default function BulkCreatePage() {
                         name="tagMode"
                         checked={tagMode === 'manual'}
                         onChange={() => setTagMode('manual')}
-                        className="text-blue-600"
+                        className="text-red-600"
                       />
                       <span className="text-sm">กำหนดเอง</span>
                     </label>
@@ -486,7 +486,7 @@ export default function BulkCreatePage() {
                         name="tagMode"
                         checked={tagMode === 'none'}
                         onChange={() => setTagMode('none')}
-                        className="text-blue-600"
+                        className="text-red-600"
                       />
                       <span className="text-sm">ไม่ใส่ Tags</span>
                     </label>
@@ -516,7 +516,7 @@ export default function BulkCreatePage() {
                             <span
                               key={tag}
                               className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
-                              style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}
+                              style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}
                             >
                               {tag}
                               <button onClick={() => setManualTags(manualTags.filter(t => t !== tag))}>
@@ -572,7 +572,7 @@ export default function BulkCreatePage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Link2 className="h-5 w-5" style={{ color: '#2563eb' }} />
+                  <Link2 className="h-5 w-5" style={{ color: '#dc2626' }} />
                   SEO Link (ใช้ร่วมกันทุกบทความ)
                 </CardTitle>
               </CardHeader>
@@ -714,7 +714,7 @@ export default function BulkCreatePage() {
                       name="scheduleMode"
                       checked={scheduleMode === 'immediate'}
                       onChange={() => setScheduleMode('immediate')}
-                      className="text-blue-600"
+                      className="text-red-600"
                     />
                     <span className="text-sm">โพสทั้งหมดทันที</span>
                   </label>
@@ -724,7 +724,7 @@ export default function BulkCreatePage() {
                       name="scheduleMode"
                       checked={scheduleMode === 'auto'}
                       onChange={() => setScheduleMode('auto')}
-                      className="text-blue-600"
+                      className="text-red-600"
                     />
                     <span className="text-sm">ตั้งเวลาอัตโนมัติ (กระจายเวลาเอง)</span>
                   </label>
@@ -737,7 +737,7 @@ export default function BulkCreatePage() {
                         type="checkbox"
                         checked={firstArticleNow}
                         onChange={(e) => setFirstArticleNow(e.target.checked)}
-                        className="text-blue-600"
+                        className="text-red-600"
                       />
                       <span className="text-sm">บทความแรกโพสทันที</span>
                     </label>
@@ -799,7 +799,7 @@ export default function BulkCreatePage() {
                     type="checkbox"
                     checked={generateImage}
                     onChange={(e) => setGenerateImage(e.target.checked)}
-                    className="text-blue-600"
+                    className="text-red-600"
                   />
                   <span className="text-sm">สร้างภาพหน้าปกอัตโนมัติ</span>
                 </label>
@@ -816,7 +816,7 @@ export default function BulkCreatePage() {
                         }}
                         className="flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all"
                         style={{
-                          backgroundColor: backgroundType === 'solid' ? '#2563eb' : 'transparent',
+                          backgroundColor: backgroundType === 'solid' ? '#dc2626' : 'transparent',
                           color: backgroundType === 'solid' ? '#ffffff' : '#6b7280'
                         }}
                       >
@@ -830,7 +830,7 @@ export default function BulkCreatePage() {
                         }}
                         className="flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all"
                         style={{
-                          backgroundColor: backgroundType === 'gradient' ? '#2563eb' : 'transparent',
+                          backgroundColor: backgroundType === 'gradient' ? '#dc2626' : 'transparent',
                           color: backgroundType === 'gradient' ? '#ffffff' : '#6b7280'
                         }}
                       >
@@ -841,7 +841,7 @@ export default function BulkCreatePage() {
                         onClick={() => setBackgroundType('custom')}
                         className="flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all"
                         style={{
-                          backgroundColor: backgroundType === 'custom' ? '#2563eb' : 'transparent',
+                          backgroundColor: backgroundType === 'custom' ? '#dc2626' : 'transparent',
                           color: backgroundType === 'custom' ? '#ffffff' : '#6b7280'
                         }}
                       >
@@ -860,8 +860,8 @@ export default function BulkCreatePage() {
                             className="relative p-3 rounded-xl border-2 transition-all"
                             style={{
                               backgroundColor: preset.bg,
-                              borderColor: selectedPreset.id === preset.id ? '#2563eb' : '#e5e7eb',
-                              boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(37, 99, 235, 0.2)' : 'none'
+                              borderColor: selectedPreset.id === preset.id ? '#dc2626' : '#e5e7eb',
+                              boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(220, 38, 38, 0.2)' : 'none'
                             }}
                             title={preset.name}
                           >
@@ -884,8 +884,8 @@ export default function BulkCreatePage() {
                             className="relative p-3 rounded-xl border-2 transition-all"
                             style={{
                               background: `linear-gradient(${preset.gradient.angle || 135}deg, ${preset.gradient.colors.join(', ')})`,
-                              borderColor: selectedPreset.id === preset.id ? '#2563eb' : '#e5e7eb',
-                              boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(37, 99, 235, 0.2)' : 'none'
+                              borderColor: selectedPreset.id === preset.id ? '#dc2626' : '#e5e7eb',
+                              boxShadow: selectedPreset.id === preset.id ? '0 0 0 2px rgba(220, 38, 38, 0.2)' : 'none'
                             }}
                             title={preset.name}
                           >
@@ -951,8 +951,8 @@ export default function BulkCreatePage() {
                             className="relative w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center"
                             style={{
                               backgroundColor: preset.color,
-                              borderColor: textColor === preset.color ? '#2563eb' : '#d1d5db',
-                              boxShadow: textColor === preset.color ? '0 0 0 2px rgba(37, 99, 235, 0.3)' : 'none'
+                              borderColor: textColor === preset.color ? '#dc2626' : '#d1d5db',
+                              boxShadow: textColor === preset.color ? '0 0 0 2px rgba(220, 38, 38, 0.3)' : 'none'
                             }}
                             title={preset.name}
                           >
@@ -1001,7 +1001,7 @@ export default function BulkCreatePage() {
                   value={keywordsText}
                   onChange={(e) => setKeywordsText(e.target.value)}
                   placeholder="วิธีลดน้ำหนัก&#10;อาหารคลีน&#10;ออกกำลังกายที่บ้าน"
-                  className="w-full h-40 p-3 border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-40 p-3 border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500"
                   style={{ borderColor: '#d1d5db' }}
                   disabled={isProcessing}
                 />
@@ -1090,7 +1090,7 @@ export default function BulkCreatePage() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-1 text-xs mt-1 hover:underline"
-                                    style={{ color: '#2563eb' }}
+                                    style={{ color: '#dc2626' }}
                                   >
                                     <Link2 className="h-3 w-3" />
                                     <span className="truncate max-w-[200px]">{articleItem.wpPostUrl}</span>
