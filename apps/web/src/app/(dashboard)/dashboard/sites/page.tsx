@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, MoreVertical, Globe, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Plus, Search, Globe, XCircle, Loader2, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,16 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { sitesApi } from '@/lib/api';
-import { formatDate, STATUS_COLORS, STATUS_LABELS } from '@/lib/utils';
+import { formatDate, STATUS_LABELS } from '@/lib/utils';
 import { AddSiteForm } from './add-site-form';
+import { BulkImportForm } from './bulk-import-form';
 
 export default function SitesPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [testingSite, setTestingSite] = useState<string | null>(null);
   const [deleteSiteId, setDeleteSiteId] = useState<string | null>(null);
 
@@ -78,112 +79,140 @@ export default function SitesPage() {
   return (
     <div>
       <Header
-        title="Sites"
-        description="Manage your WordPress sites"
+        title="เว็บไซต์"
+        description="จัดการเว็บไซต์ WordPress ทั้งหมด"
         action={
-          <Button onClick={() => setIsAddModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Site
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsBulkImportOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              นำเข้าหลายเว็บ
+            </Button>
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              เพิ่มเว็บไซต์
+            </Button>
+          </div>
         }
       />
 
-      <div className="p-8">
+      <div className="p-4 sm:p-6">
         {/* Search */}
-        <div className="mb-6 flex gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: '#9ca3af' }} />
+        <div className="mb-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
-              placeholder="Search sites..."
+              placeholder="ค้นหาเว็บไซต์..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full max-w-md"
             />
           </div>
         </div>
 
         {/* Table */}
-        <div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Site</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Articles</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="w-[100px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <div className="flex justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-t-transparent" style={{ borderColor: '#2563eb', borderTopColor: 'transparent' }} />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : data?.data?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8" style={{ color: '#9ca3af' }}>
-                    No sites found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data?.data?.map((site: any) => (
-                  <TableRow key={site.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: '#eff6ff', border: '1px solid #dbeafe' }}>
-                          <Globe className="h-5 w-5" style={{ color: '#2563eb' }} />
-                        </div>
-                        <div>
-                          <p className="font-medium" style={{ color: '#1f2937' }}>{site.name}</p>
-                          <p className="text-sm" style={{ color: '#6b7280' }}>{site.url}</p>
-                        </div>
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px]">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    เว็บไซต์
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    สถานะ
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    บทความ
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    วันที่สร้าง
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    จัดการ
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-12 text-center">
+                      <div className="flex justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent" />
                       </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(site.status)}</TableCell>
-                    <TableCell style={{ color: '#4b5563' }}>{site._count?.articles || 0}</TableCell>
-                    <TableCell style={{ color: '#6b7280' }}>
-                      {formatDate(site.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleTest(site.id)}
-                          disabled={testingSite === site.id}
-                        >
-                          {testingSite === site.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            'Test'
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteSiteId(site.id)}
-                        >
-                          <XCircle className="h-4 w-4" style={{ color: '#ef4444' }} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                    </td>
+                  </tr>
+                ) : data?.data?.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-12 text-center text-gray-400">
+                      ไม่พบเว็บไซต์
+                    </td>
+                  </tr>
+                ) : (
+                  data?.data?.map((site: any) => (
+                    <tr key={site.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-blue-50 border border-blue-100">
+                            <Globe className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900">{site.name}</p>
+                            <p className="text-xs text-gray-500 truncate">{site.url}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">{getStatusBadge(site.status)}</td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-gray-600">{site._count?.articles || 0}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-sm text-gray-500">{formatDate(site.createdAt)}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleTest(site.id)}
+                            disabled={testingSite === site.id}
+                          >
+                            {testingSite === site.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              'Test'
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteSiteId(site.id)}
+                            title="Delete"
+                          >
+                            <XCircle className="h-4 w-4 text-red-400 hover:text-red-600" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        {/* Footer info */}
+        {data?.data?.length > 0 && (
+          <div className="mt-3 text-sm text-gray-500">
+            ทั้งหมด {data.data.length} เว็บไซต์
+          </div>
+        )}
       </div>
 
       {/* Add Site Modal */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add New Site"
+        title="เพิ่มเว็บไซต์ใหม่"
         size="lg"
       >
         <AddSiteForm
@@ -192,6 +221,22 @@ export default function SitesPage() {
             queryClient.invalidateQueries({ queryKey: ['sites'] });
           }}
           onCancel={() => setIsAddModalOpen(false)}
+        />
+      </Modal>
+
+      {/* Bulk Import Modal */}
+      <Modal
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
+        title="Bulk Import เว็บไซต์"
+        size="xl"
+      >
+        <BulkImportForm
+          onSuccess={() => {
+            setIsBulkImportOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['sites'] });
+          }}
+          onCancel={() => setIsBulkImportOpen(false)}
         />
       </Modal>
 
