@@ -29,7 +29,7 @@ export class DashboardController {
         queueCount,
         errorCount,
       ] = await Promise.all([
-        prisma.site.count(req.user!.role !== 'ADMIN' ? { where: { users: { some: { userId: req.user!.id } } } } : {}),
+        prisma.site.count({ where: req.user!.role !== 'ADMIN' ? { users: { some: { userId: req.user!.id } } } : {} }),
         prisma.site.count({
           where: {
             status: 'ACTIVE',

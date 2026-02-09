@@ -158,7 +158,7 @@ export class WordPressService {
         'Content-Type': 'image/png',
         Authorization: this.getAuthHeader(),
       },
-      body: buffer,
+      body: new Uint8Array(buffer),
     });
 
     if (!response.ok) {

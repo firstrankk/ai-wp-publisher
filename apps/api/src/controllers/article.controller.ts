@@ -237,7 +237,7 @@ export class ArticleController {
           tone: data.tone,
           length: data.length,
           seoKeywords: data.seoKeywords || [],
-          seoLinks: data.seoLinks || null,
+          seoLinks: data.seoLinks || undefined,
           categories: data.categories || [],
           tags: data.tags || [],
           scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
@@ -391,7 +391,7 @@ export class ArticleController {
         // Extract SEO link keywords to tell AI to include them
         let seoLinkKeywords: { keyword: string; count: number }[] | undefined;
         if (article.seoLinks && Array.isArray(article.seoLinks)) {
-          seoLinkKeywords = (article.seoLinks as SeoLink[]).map(link => ({
+          seoLinkKeywords = (article.seoLinks as any[]).map((link: SeoLink) => ({
             keyword: link.keyword,
             count: link.maxCount,
           }));
@@ -409,7 +409,7 @@ export class ArticleController {
         // Insert SEO links into content if available
         let processedContent = generated.content;
         if (article.seoLinks && Array.isArray(article.seoLinks)) {
-          processedContent = insertSeoLinks(generated.content, article.seoLinks as SeoLink[]);
+          processedContent = insertSeoLinks(generated.content, article.seoLinks as any as SeoLink[]);
         }
 
         // Prepare update data
