@@ -33,19 +33,35 @@ function insertSeoLinks(content: string, seoLinks: SeoLink[]): string {
     let replacementCount = 0;
 
     // Create a regex to find the keyword (case-insensitive, not inside existing tags)
-    // This regex looks for the keyword that is NOT inside an HTML tag
     const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     // Split content by HTML tags to avoid replacing inside tags
     const parts = modifiedContent.split(/(<[^>]*>)/);
 
+    // Track if we're inside a heading tag
+    let insideHeading = false;
+
     modifiedContent = parts.map(part => {
-      // If it's an HTML tag, don't modify it
+      // Check for heading opening tags
+      if (part.match(/^<h[1-6][^>]*>/i)) {
+        insideHeading = true;
+        return part;
+      }
+      // Check for heading closing tags
+      if (part.match(/^<\/h[1-6]>/i)) {
+        insideHeading = false;
+        return part;
+      }
+      // If it's any HTML tag, don't modify it
       if (part.startsWith('<')) {
         return part;
       }
+      // If we're inside a heading, don't add links
+      if (insideHeading) {
+        return part;
+      }
 
-      // Replace keyword occurrences in text content
+      // Replace keyword occurrences in text content (only in paragraphs, not headings)
       return part.replace(new RegExp(escapedKeyword, 'gi'), (match) => {
         if (replacementCount < maxCount) {
           replacementCount++;
@@ -54,8 +70,67 @@ function insertSeoLinks(content: string, seoLinks: SeoLink[]): string {
         return match;
       });
     }).join('');
+
+    // If we didn't find enough occurrences, insert keyword+link at appropriate positions
+    const remaining = maxCount - replacementCount;
+    if (remaining > 0) {
+      console.log(`Need to insert ${remaining} more links for keyword "${keyword}"`);
+      modifiedContent = insertAdditionalLinks(modifiedContent, keyword, url, remaining);
+    }
   }
 
+  return modifiedContent;
+}
+
+// Helper function to insert additional keyword+link at appropriate positions
+function insertAdditionalLinks(content: string, keyword: string, url: string, count: number): string {
+  let modifiedContent = content;
+  let inserted = 0;
+
+  // Find all paragraph tags and insert after some of them
+  const paragraphRegex = /(<\/p>)/gi;
+  const matches = [...content.matchAll(paragraphRegex)];
+
+  if (matches.length === 0) {
+    // No paragraphs found, try to insert before closing tags like </div>
+    const linkText = ` <a href="${url}" target="_blank" rel="noopener">${keyword}</a>`;
+    // Insert at the end of content or before last closing tag
+    if (content.includes('</p>')) {
+      modifiedContent = content.replace(/<\/p>(?![\s\S]*<\/p>)/, `${linkText}</p>`);
+      inserted++;
+    }
+    return modifiedContent;
+  }
+
+  // Calculate which paragraphs to insert after (spread evenly)
+  const totalParagraphs = matches.length;
+  const interval = Math.max(1, Math.floor(totalParagraphs / (count + 1)));
+
+  let insertPositions: number[] = [];
+  for (let i = 0; i < count && i < totalParagraphs; i++) {
+    const pos = Math.min(interval * (i + 1) - 1, totalParagraphs - 1);
+    if (!insertPositions.includes(pos)) {
+      insertPositions.push(pos);
+    }
+  }
+
+  // Sort positions in reverse order to insert from end to start (to preserve indices)
+  insertPositions.sort((a, b) => b - a);
+
+  // Insert keyword+link after selected paragraphs
+  const linkHtml = `<p><a href="${url}" target="_blank" rel="noopener">${keyword}</a></p>`;
+
+  for (const pos of insertPositions) {
+    if (inserted >= count) break;
+    const match = matches[pos];
+    if (match && match.index !== undefined) {
+      const insertIndex = match.index + match[0].length;
+      modifiedContent = modifiedContent.slice(0, insertIndex) + linkHtml + modifiedContent.slice(insertIndex);
+      inserted++;
+    }
+  }
+
+  console.log(`Inserted ${inserted} additional links for "${keyword}"`);
   return modifiedContent;
 }
 
@@ -316,11 +391,13 @@ export class ArticleController {
 
         // Extract SEO link keywords to tell AI to include them
         let seoLinkKeywords: { keyword: string; count: number }[] | undefined;
+        console.log('Article seoLinks from DB:', article.seoLinks);
         if (article.seoLinks && Array.isArray(article.seoLinks)) {
           seoLinkKeywords = (article.seoLinks as SeoLink[]).map(link => ({
             keyword: link.keyword,
             count: link.maxCount,
           }));
+          console.log('Extracted seoLinkKeywords:', seoLinkKeywords);
         }
 
         // Generate content
@@ -335,7 +412,10 @@ export class ArticleController {
         // Insert SEO links into content if available
         let processedContent = generated.content;
         if (article.seoLinks && Array.isArray(article.seoLinks)) {
+          console.log('Inserting SEO links:', article.seoLinks);
           processedContent = insertSeoLinks(generated.content, article.seoLinks as SeoLink[]);
+          console.log('Content before SEO links:', generated.content.substring(0, 200));
+          console.log('Content after SEO links:', processedContent.substring(0, 200));
         }
 
         // Prepare update data
@@ -464,7 +544,9 @@ export class ArticleController {
   async publish(req: AuthRequest, res: Response) {
     try {
       const { id } = req.params;
-      const { status: publishStatus } = req.body; // 'draft' or 'publish'
+      const { status: publishStatus, scheduledAt } = req.body; // 'draft', 'publish', 'future' + optional scheduledAt
+
+      console.log('Publish request - status:', publishStatus, 'scheduledAt:', scheduledAt);
 
       const article = await prisma.article.findUnique({
         where: { id },
@@ -487,8 +569,14 @@ export class ArticleController {
         return res.status(400).json({ error: 'Article content is empty. Please regenerate the article.' });
       }
 
-      // Determine WordPress post status: use provided status or fall back to site default
-      const wpPostStatus = publishStatus || article.site.defaultPostStatus.toLowerCase();
+      // Determine WordPress post status
+      // If scheduledAt is provided, use 'future' status for scheduled posts
+      let wpPostStatus: string;
+      if (scheduledAt) {
+        wpPostStatus = 'future';
+      } else {
+        wpPostStatus = publishStatus || article.site.defaultPostStatus.toLowerCase();
+      }
 
       // Update status
       await prisma.article.update({
@@ -518,20 +606,23 @@ export class ArticleController {
           title: article.title,
           content: article.content,
           excerpt: article.excerpt || undefined,
-          status: wpPostStatus as 'draft' | 'publish' | 'pending',
+          status: wpPostStatus as 'draft' | 'publish' | 'pending' | 'future',
+          date: scheduledAt || undefined,
           categories: article.categories && article.categories.length > 0 ? article.categories : undefined,
           tags: article.tags,
           featured_media: mediaId,
         });
 
-        // Update article
+        // Update article - handle both immediate publish and scheduled posts
+        const isScheduled = !!scheduledAt;
         const updated = await prisma.article.update({
           where: { id },
           data: {
-            status: 'PUBLISHED',
+            status: isScheduled ? 'SCHEDULED' : 'PUBLISHED',
             wpPostId: result.id.toString(),
             wpPostUrl: result.link,
-            publishedAt: new Date(),
+            publishedAt: isScheduled ? null : new Date(),
+            scheduledAt: isScheduled ? new Date(scheduledAt) : null,
             errorMessage: null,
           },
           include: {
@@ -540,12 +631,15 @@ export class ArticleController {
         });
 
         // Log activity
+        const activityMessage = isScheduled
+          ? `Article "${article.title}" scheduled for ${new Date(scheduledAt).toLocaleString('th-TH')} on ${article.site.name}`
+          : `Article "${article.title}" published to ${article.site.name}`;
         await prisma.activityLog.create({
           data: {
-            type: 'ARTICLE_PUBLISHED',
-            message: `Article "${article.title}" published to ${article.site.name}`,
+            type: isScheduled ? 'ARTICLE_SCHEDULED' : 'ARTICLE_PUBLISHED',
+            message: activityMessage,
             userId: req.user!.id,
-            metadata: { articleId: id, wpPostUrl: result.link },
+            metadata: { articleId: id, wpPostUrl: result.link, scheduledAt: scheduledAt || null },
           },
         });
 

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Menu, X } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 // Sidebar context for managing open/close state
 interface SidebarContextType {
@@ -28,6 +29,11 @@ export default function DashboardLayout({
 }) {
   const [isOpen, setIsOpen] = useState(false); // Mobile drawer
   const [isCollapsed, setIsCollapsed] = useState(false); // Desktop collapsed
+  const { restoreSession } = useAuth();
+
+  useEffect(() => {
+    restoreSession();
+  }, [restoreSession]);
 
   return (
     <SidebarContext.Provider value={{ isOpen, setIsOpen, isCollapsed, setIsCollapsed }}>

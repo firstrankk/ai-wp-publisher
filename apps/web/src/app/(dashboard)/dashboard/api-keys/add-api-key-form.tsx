@@ -5,15 +5,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
+import { Tag, Cpu, Key, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { apiKeysApi } from '@/lib/api';
 
 const addApiKeySchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'กรุณากรอกชื่อ'),
   provider: z.enum(['CLAUDE', 'OPENAI', 'GEMINI', 'OPENROUTER', 'DALLE', 'REPLICATE']),
-  key: z.string().min(1, 'API key is required'),
+  key: z.string().min(1, 'กรุณากรอก API Key'),
   model: z.string().optional(),
 });
 
@@ -45,10 +46,10 @@ export function AddApiKeyForm({ onSuccess, onCancel }: AddApiKeyFormProps) {
     setIsLoading(true);
     try {
       await apiKeysApi.create(data);
-      toast.success('API key added successfully');
+      toast.success('เพิ่ม API Key สำเร็จ');
       onSuccess();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to add API key');
+      toast.error(error.response?.data?.error || 'เพิ่ม API Key ไม่สำเร็จ');
     } finally {
       setIsLoading(false);
     }
@@ -57,20 +58,26 @@ export function AddApiKeyForm({ onSuccess, onCancel }: AddApiKeyFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Name
-        </label>
+        <div className="flex items-center gap-2 mb-1">
+          <Tag className="h-3.5 w-3.5" style={{ color: '#6b7280' }} />
+          <label className="text-sm font-medium" style={{ color: '#374151' }}>
+            ชื่อ
+          </label>
+        </div>
         <Input
-          placeholder="e.g., Claude Production"
+          placeholder="เช่น Claude Production"
           {...register('name')}
           error={errors.name?.message}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Provider
-        </label>
+        <div className="flex items-center gap-2 mb-1">
+          <Cpu className="h-3.5 w-3.5" style={{ color: '#6b7280' }} />
+          <label className="text-sm font-medium" style={{ color: '#374151' }}>
+            Provider
+          </label>
+        </div>
         <Select
           {...register('provider')}
           options={[
@@ -86,25 +93,31 @@ export function AddApiKeyForm({ onSuccess, onCancel }: AddApiKeyFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          API Key
-        </label>
+        <div className="flex items-center gap-2 mb-1">
+          <Key className="h-3.5 w-3.5" style={{ color: '#6b7280' }} />
+          <label className="text-sm font-medium" style={{ color: '#374151' }}>
+            API Key
+          </label>
+        </div>
         <Input
           type="password"
           placeholder="sk-..."
           {...register('key')}
           error={errors.key?.message}
         />
-        <p className="mt-1 text-xs text-gray-500">
-          Your API key will be encrypted before storage
+        <p className="mt-1 text-xs" style={{ color: '#6b7280' }}>
+          API Key จะถูกเข้ารหัสก่อนจัดเก็บ
         </p>
       </div>
 
       {selectedProvider === 'OPENROUTER' && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Model
-          </label>
+          <div className="flex items-center gap-2 mb-1">
+            <Box className="h-3.5 w-3.5" style={{ color: '#6b7280' }} />
+            <label className="text-sm font-medium" style={{ color: '#374151' }}>
+              Model
+            </label>
+          </div>
           <Select
             {...register('model')}
             options={[
@@ -127,7 +140,7 @@ export function AddApiKeyForm({ onSuccess, onCancel }: AddApiKeyFormProps) {
             ]}
             error={errors.model?.message}
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs" style={{ color: '#6b7280' }}>
             เลือกโมเดลที่ต้องการใช้สำหรับสร้างบทความ
           </p>
         </div>
@@ -135,10 +148,10 @@ export function AddApiKeyForm({ onSuccess, onCancel }: AddApiKeyFormProps) {
 
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          ยกเลิก
         </Button>
         <Button type="submit" isLoading={isLoading}>
-          Add API Key
+          เพิ่ม API Key
         </Button>
       </div>
     </form>

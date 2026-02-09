@@ -382,13 +382,13 @@ export default function NewArticlePage() {
   return (
     <div>
       <Header
-        title="New Article"
-        description="Create and publish a new article"
+        title="สร้างบทความใหม่"
+        description="สร้างและเผยแพร่บทความด้วย AI"
         action={
           <Link href="/dashboard/articles">
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              กลับ
             </Button>
           </Link>
         }
@@ -399,14 +399,14 @@ export default function NewArticlePage() {
           {/* Form / Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Article Settings</CardTitle>
+              <CardTitle>ตั้งค่าบทความ</CardTitle>
             </CardHeader>
             <CardContent>
               {!article ? (
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-                      Keyword / Topic
+                      Keyword / หัวข้อ
                     </label>
                     <Input
                       placeholder="e.g., วิธีดูแลสุขภาพในหน้าหนาว"
@@ -417,11 +417,11 @@ export default function NewArticlePage() {
 
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-                      Target Site
+                      เว็บไซต์เป้าหมาย
                     </label>
                     <Select
                       {...register('siteId')}
-                      placeholder="Select a site"
+                      placeholder="เลือกเว็บไซต์"
                       options={
                         (sites?.data || sites || []).map((site: any) => ({
                           value: site.id,
@@ -434,7 +434,7 @@ export default function NewArticlePage() {
 
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-                      Tone
+                      โทนเสียง
                     </label>
                     <Select
                       {...register('tone')}
@@ -449,7 +449,7 @@ export default function NewArticlePage() {
 
                   <div>
                     <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-                      Length
+                      ความยาว
                     </label>
                     <Select
                       {...register('length')}
@@ -468,7 +468,7 @@ export default function NewArticlePage() {
                     </label>
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Add a tag and press Enter"
+                        placeholder="พิมพ์แท็กแล้วกด Enter"
                         value={tagInput}
                         onChange={(e) => setTagInput(e.target.value)}
                         onKeyDown={handleTagKeyDown}
@@ -540,7 +540,7 @@ export default function NewArticlePage() {
                     {/* Add new category */}
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Add new category"
+                        placeholder="พิมพ์หมวดหมู่ใหม่"
                         value={categoryInput}
                         onChange={(e) => setCategoryInput(e.target.value)}
                         onKeyDown={handleCategoryKeyDown}
@@ -668,7 +668,7 @@ export default function NewArticlePage() {
 
                   <Button type="submit" isLoading={isGenerating} className="w-full">
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Create & Generate
+                    สร้างและ Generate บทความ
                   </Button>
                 </form>
               ) : (
@@ -1044,12 +1044,12 @@ export default function NewArticlePage() {
           {/* Preview */}
           <Card>
             <CardHeader>
-              <CardTitle>Preview</CardTitle>
+              <CardTitle>ตัวอย่าง</CardTitle>
             </CardHeader>
             <CardContent>
               {!article?.title ? (
                 <div className="flex h-64 items-center justify-center" style={{ color: '#9ca3af' }}>
-                  Article preview will appear here
+                  ตัวอย่างบทความจะแสดงที่นี่
                 </div>
               ) : (
                 <div className="space-y-4">

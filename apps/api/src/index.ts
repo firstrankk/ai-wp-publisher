@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { PrismaClient } from '@prisma/client';
 import routes from './routes/index.js';
 import { errorHandler } from './middlewares/error.middleware.js';
+import { startCleanupJob } from './services/cleanup.service.js';
 
 // Initialize Prisma
 export const prisma = new PrismaClient();
@@ -63,6 +64,9 @@ process.on('SIGINT', shutdown);
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
+
+  // Start auto-cleanup cron job
+  startCleanupJob(prisma);
 });
 
 export default app;

@@ -39,6 +39,7 @@ export const STATUS_LABELS = {
   READY: 'พร้อมโพสต์',
   PUBLISHING: 'กำลังโพสต์',
   PUBLISHED: 'โพสต์แล้ว',
+  SCHEDULED: 'ตั้งเวลา',
   FAILED: 'ล้มเหลว',
   ACTIVE: 'ใช้งาน',
   INACTIVE: 'ปิดใช้งาน',
@@ -68,7 +69,7 @@ export const LENGTH_LABELS = {
 export const DAY_LABELS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 
 export const ROLE_LABELS = {
-  ADMIN: 'ผู้ดูแลระบบ',
-  EDITOR: 'บรรณาธิการ',
-  VIEWER: 'ผู้ชม',
+  ADMIN: 'Admin',
+  EDITOR: 'Editor',
+  VIEWER: 'Viewer',
 };

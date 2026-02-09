@@ -5,15 +5,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
+import { Globe, User, Lock, Link } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { sitesApi } from '@/lib/api';
 
 const addSiteSchema = z.object({
-  name: z.string().min(1, 'Site name is required'),
-  url: z.string().url('Invalid URL'),
-  username: z.string().min(1, 'Username is required'),
-  appPassword: z.string().min(1, 'App password is required'),
+  name: z.string().min(1, 'กรุณากรอกชื่อเว็บไซต์'),
+  url: z.string().url('URL ไม่ถูกต้อง'),
+  username: z.string().min(1, 'กรุณากรอก Username'),
+  appPassword: z.string().min(1, 'กรุณากรอก Application Password'),
 });
 
 type AddSiteForm = z.infer<typeof addSiteSchema>;
@@ -38,10 +39,10 @@ export function AddSiteForm({ onSuccess, onCancel }: AddSiteFormProps) {
     setIsLoading(true);
     try {
       await sitesApi.create(data);
-      toast.success('Site added successfully');
+      toast.success('เพิ่มเว็บไซต์สำเร็จ');
       onSuccess();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to add site');
+      toast.error(error.response?.data?.error || 'เพิ่มเว็บไซต์ไม่สำเร็จ');
     } finally {
       setIsLoading(false);
     }
@@ -50,34 +51,43 @@ export function AddSiteForm({ onSuccess, onCancel }: AddSiteFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          Site Name
-        </label>
+        <div className="flex items-center gap-2 mb-1">
+          <Globe className="h-3.5 w-3.5" style={{ color: '#6b7280' }} />
+          <label className="text-sm font-medium" style={{ color: '#374151' }}>
+            ชื่อเว็บไซต์
+          </label>
+        </div>
         <Input
-          placeholder="My WordPress Site"
+          placeholder="เช่น บล็อกสุขภาพ"
           {...register('name')}
           error={errors.name?.message}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          Site URL
-        </label>
+        <div className="flex items-center gap-2 mb-1">
+          <Link className="h-3.5 w-3.5" style={{ color: '#6b7280' }} />
+          <label className="text-sm font-medium" style={{ color: '#374151' }}>
+            URL เว็บไซต์
+          </label>
+        </div>
         <Input
           placeholder="https://example.com"
           {...register('url')}
           error={errors.url?.message}
         />
         <p className="mt-1 text-xs" style={{ color: '#6b7280' }}>
-          The full URL of your WordPress site
+          URL เต็มของเว็บไซต์ WordPress
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          WordPress Username
-        </label>
+        <div className="flex items-center gap-2 mb-1">
+          <User className="h-3.5 w-3.5" style={{ color: '#6b7280' }} />
+          <label className="text-sm font-medium" style={{ color: '#374151' }}>
+            WordPress Username
+          </label>
+        </div>
         <Input
           placeholder="admin"
           {...register('username')}
@@ -86,9 +96,12 @@ export function AddSiteForm({ onSuccess, onCancel }: AddSiteFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1" style={{ color: '#374151' }}>
-          Application Password
-        </label>
+        <div className="flex items-center gap-2 mb-1">
+          <Lock className="h-3.5 w-3.5" style={{ color: '#6b7280' }} />
+          <label className="text-sm font-medium" style={{ color: '#374151' }}>
+            Application Password
+          </label>
+        </div>
         <Input
           type="password"
           placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"
@@ -96,16 +109,16 @@ export function AddSiteForm({ onSuccess, onCancel }: AddSiteFormProps) {
           error={errors.appPassword?.message}
         />
         <p className="mt-1 text-xs" style={{ color: '#6b7280' }}>
-          Generate an Application Password in WordPress Users {'>'} Profile {'>'} Application Passwords
+          สร้างได้ที่ WordPress {'>'} Users {'>'} Profile {'>'} Application Passwords
         </p>
       </div>
 
       <div className="flex justify-end gap-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
+          ยกเลิก
         </Button>
         <Button type="submit" isLoading={isLoading}>
-          Add Site
+          เพิ่มเว็บไซต์
         </Button>
       </div>
     </form>

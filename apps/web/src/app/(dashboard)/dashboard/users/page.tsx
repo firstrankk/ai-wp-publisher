@@ -53,12 +53,12 @@ export default function UsersPage() {
   return (
     <div>
       <Header
-        title="Users"
-        description="Manage system users"
+        title="ผู้ใช้งาน"
+        description="จัดการผู้ใช้งานระบบ"
         action={
           <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add User
+            เพิ่มผู้ใช้
           </Button>
         }
       />
@@ -69,7 +69,7 @@ export default function UsersPage() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <Input
-              placeholder="Search users..."
+              placeholder="ค้นหาผู้ใช้..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -82,12 +82,12 @@ export default function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Sites</TableHead>
-                <TableHead>Articles</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="w-[80px]">Actions</TableHead>
+                <TableHead>ผู้ใช้</TableHead>
+                <TableHead>สิทธิ์</TableHead>
+                <TableHead>เว็บไซต์</TableHead>
+                <TableHead>บทความ</TableHead>
+                <TableHead>วันที่สร้าง</TableHead>
+                <TableHead className="w-[80px]">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -102,7 +102,7 @@ export default function UsersPage() {
               ) : data?.data?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                    No users found
+                    ไม่พบผู้ใช้
                   </TableCell>
                 </TableRow>
               ) : (
@@ -146,7 +146,7 @@ export default function UsersPage() {
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add New User"
+        title="เพิ่มผู้ใช้ใหม่"
       >
         <AddUserForm
           onSuccess={() => {

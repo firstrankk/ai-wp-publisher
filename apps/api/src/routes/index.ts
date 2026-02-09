@@ -5,6 +5,7 @@ import siteRoutes from './site.routes.js';
 import articleRoutes from './article.routes.js';
 import apiKeyRoutes from './api-key.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
+import settingsRoutes from './settings.routes.js';
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.use('/sites', siteRoutes);
 router.use('/articles', articleRoutes);
 router.use('/api-keys', apiKeyRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/settings', settingsRoutes);
 
 export default router;

@@ -92,11 +92,11 @@ export default function ApiKeysPage() {
     <div>
       <Header
         title="API Keys"
-        description="Manage AI provider API keys"
+        description="จัดการ API Key สำหรับ AI Providers"
         action={
           <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add API Key
+            เพิ่ม API Key
           </Button>
         }
       />
@@ -106,8 +106,7 @@ export default function ApiKeysPage() {
         <Card className="mb-6">
           <CardContent className="p-4">
             <p className="text-sm text-gray-600">
-              API keys are encrypted and stored securely. Add keys for AI providers to enable
-              article generation and image creation features.
+              API Key จะถูกเข้ารหัสก่อนจัดเก็บ เพิ่ม Key ของ AI Provider เพื่อใช้งานฟีเจอร์สร้างบทความและรูปภาพ
             </p>
           </CardContent>
         </Card>
@@ -117,12 +116,12 @@ export default function ApiKeysPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>ชื่อ</TableHead>
                 <TableHead>Provider</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Usage</TableHead>
-                <TableHead>Last Used</TableHead>
-                <TableHead className="w-[120px]">Actions</TableHead>
+                <TableHead>สถานะ</TableHead>
+                <TableHead>ใช้งาน</TableHead>
+                <TableHead>ใช้ล่าสุด</TableHead>
+                <TableHead className="w-[120px]">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -137,7 +136,7 @@ export default function ApiKeysPage() {
               ) : apiKeys?.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                    No API keys configured
+                    ยังไม่มี API Key
                   </TableCell>
                 </TableRow>
               ) : (
@@ -180,9 +179,9 @@ export default function ApiKeysPage() {
                         {apiKey.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatNumber(apiKey.usageCount)} calls</TableCell>
+                    <TableCell>{formatNumber(apiKey.usageCount)} ครั้ง</TableCell>
                     <TableCell className="text-gray-500">
-                      {apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'Never'}
+                      {apiKey.lastUsedAt ? formatDate(apiKey.lastUsedAt) : 'ยังไม่เคยใช้'}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -241,7 +240,7 @@ export default function ApiKeysPage() {
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title="Add API Key"
+        title="เพิ่ม API Key"
       >
         <AddApiKeyForm
           onSuccess={() => {

@@ -76,7 +76,7 @@ export class AIService {
       const keywordList = seoLinkKeywords
         .map(k => `"${k.keyword}" (ใช้อย่างน้อย ${k.count} ครั้ง)`)
         .join(', ');
-      seoLinkInstruction = `\n10. ต้องใส่คำเหล่านี้ในเนื้อหาบทความอย่างเป็นธรรมชาติ: ${keywordList}`;
+      seoLinkInstruction = `\n10. ต้องใส่คำเหล่านี้ในเนื้อหาย่อหน้า (<p>) เท่านั้น ห้ามใส่ในหัวข้อบทความหรือหัวข้อย่อย: ${keywordList}`;
     }
 
     const systemPrompt = `คุณเป็นนักเขียนบทความมืออาชีพที่เชี่ยวชาญในการเขียนบทความภาษาไทยที่มีคุณภาพสูง SEO-friendly และน่าสนใจ
@@ -102,10 +102,10 @@ export class AIService {
 
     const userPrompt = `เขียนบทความเกี่ยวกับ: "${keyword}"
 ${seoKeywords && seoKeywords.length > 0 ? `\nSEO Keywords ที่ต้องใช้ในบทความ: ${seoKeywords.join(', ')}` : ''}
-${seoLinkKeywords && seoLinkKeywords.length > 0 ? `\nคำสำคัญที่ต้องใส่ในเนื้อหา: ${seoLinkKeywords.map(k => `"${k.keyword}" อย่างน้อย ${k.count} ครั้ง`).join(', ')}` : ''}
+${seoLinkKeywords && seoLinkKeywords.length > 0 ? `\nคำสำคัญที่ต้องใส่ในเนื้อหาย่อหน้าเท่านั้น (ห้ามใส่ในหัวข้อบทความ): ${seoLinkKeywords.map(k => `"${k.keyword}" อย่างน้อย ${k.count} ครั้ง`).join(', ')}` : ''}
 
 สร้างบทความที่:
-1. มีหัวข้อที่น่าสนใจ ดึงดูดให้คลิก (ห้ามใช้เครื่องหมาย : ในหัวข้อ)
+1. มีหัวข้อที่น่าสนใจ ดึงดูดให้คลิก (ห้ามใช้เครื่องหมาย : ในหัวข้อ และห้ามใส่ URL หรือชื่อเว็บไซต์ในหัวข้อ)
 2. เนื้อหาครบถ้วน ตอบคำถามผู้อ่าน
 3. SEO-friendly มี keyword หลักอยู่ในหัวข้อและเนื้อหา
 4. มีโครงสร้างที่ดี อ่านง่าย`;

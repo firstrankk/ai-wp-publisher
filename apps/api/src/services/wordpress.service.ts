@@ -2,7 +2,8 @@ interface CreatePostParams {
   title: string;
   content: string;
   excerpt?: string;
-  status?: 'draft' | 'publish' | 'pending';
+  status?: 'draft' | 'publish' | 'pending' | 'future';
+  date?: string; // ISO 8601 format for scheduled posts
   categories?: string[];
   tags?: string[];
   featured_media?: number;
@@ -69,7 +70,7 @@ export class WordPressService {
   }
 
   async createPost(params: CreatePostParams): Promise<WPPost> {
-    const { title, content, excerpt, status = 'draft', categories, tags, featured_media } = params;
+    const { title, content, excerpt, status = 'draft', date, categories, tags, featured_media } = params;
 
     const body: any = {
       title,
@@ -79,6 +80,11 @@ export class WordPressService {
 
     if (excerpt) {
       body.excerpt = excerpt;
+    }
+
+    // For scheduled posts, set the date
+    if (date) {
+      body.date = date;
     }
 
     if (featured_media) {

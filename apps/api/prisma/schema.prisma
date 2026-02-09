@@ -34,6 +34,7 @@ enum ArticleStatus {
   READY
   PUBLISHING
   PUBLISHED
+  SCHEDULED
   FAILED
 }
 
@@ -195,4 +196,10 @@ model ActivityLog {
 
   @@index([type])
   @@index([createdAt])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

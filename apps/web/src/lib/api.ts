@@ -86,8 +86,8 @@ export const articlesApi = {
   regenerate: (id: string) => api.post(`/articles/${id}/regenerate`),
   generateImage: (id: string, options?: any) =>
     api.post(`/articles/${id}/generate-image`, options),
-  publish: (id: string, status?: 'draft' | 'publish') =>
-    api.post(`/articles/${id}/publish`, { status }),
+  publish: (id: string, status?: 'draft' | 'publish' | 'future', scheduledAt?: string) =>
+    api.post(`/articles/${id}/publish`, { status, scheduledAt }),
   retry: (id: string) => api.post(`/articles/${id}/retry`),
   bulkGenerate: (data: any) => api.post('/articles/bulk-generate', data),
 };
@@ -101,6 +101,17 @@ export const apiKeysApi = {
   delete: (id: string) => api.delete(`/api-keys/${id}`),
   test: (id: string) => api.post(`/api-keys/${id}/test`),
   setDefault: (id: string) => api.post(`/api-keys/${id}/set-default`),
+};
+
+// Settings API
+export const settingsApi = {
+  getCleanup: () => api.get('/settings/cleanup'),
+  updateCleanup: (data: {
+    cleanupEnabled: boolean;
+    cleanupRetentionDays: number;
+    activityLogRetentionDays: number;
+  }) => api.put('/settings/cleanup', data),
+  runCleanupNow: () => api.post('/settings/cleanup/run'),
 };
 
 // Dashboard API

@@ -197,19 +197,27 @@ export default function ArticlesPage() {
     );
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, scheduledAt?: string) => {
     const colors: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'default'> = {
       DRAFT: 'default',
       GENERATING: 'info',
       READY: 'warning',
       PUBLISHING: 'info',
       PUBLISHED: 'success',
+      SCHEDULED: 'info',
       FAILED: 'danger',
     };
     return (
-      <Badge variant={colors[status] || 'default'}>
-        {STATUS_LABELS[status as keyof typeof STATUS_LABELS] || status}
-      </Badge>
+      <div className="flex flex-col items-start gap-0.5">
+        <Badge variant={colors[status] || 'default'}>
+          {STATUS_LABELS[status as keyof typeof STATUS_LABELS] || status}
+        </Badge>
+        {status === 'SCHEDULED' && scheduledAt && (
+          <span className="text-xs text-blue-600">
+            {formatDate(scheduledAt)}
+          </span>
+        )}
+      </div>
     );
   };
 
@@ -244,7 +252,7 @@ export default function ArticlesPage() {
                 </p>
               )}
             </div>
-            {getStatusBadge(article.status)}
+            {getStatusBadge(article.status, article.scheduledAt)}
           </div>
 
           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
@@ -309,7 +317,7 @@ export default function ArticlesPage() {
     <div>
       <Header
         title="Articles"
-        description="Manage and publish articles"
+        description="จัดการและเผยแพร่บทความ"
         action={
           <Link href="/dashboard/articles/new">
             <Button>
@@ -348,6 +356,7 @@ export default function ArticlesPage() {
                   { value: 'READY', label: 'Ready' },
                   { value: 'PUBLISHING', label: 'Publishing' },
                   { value: 'PUBLISHED', label: 'Published' },
+                  { value: 'SCHEDULED', label: 'Scheduled' },
                   { value: 'FAILED', label: 'Failed' },
                 ]}
                 className="w-full sm:w-36"
@@ -482,7 +491,7 @@ export default function ArticlesPage() {
                         <span className="text-sm text-gray-600">{article.site?.name}</span>
                       </td>
                       <td className="px-4 py-3">
-                        {getStatusBadge(article.status)}
+                        {getStatusBadge(article.status, article.scheduledAt)}
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-sm text-gray-500">

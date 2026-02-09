@@ -36,6 +36,7 @@ interface ArticleItem {
   error?: string;
   scheduledAt?: Date;
   articleId?: string;
+  wpPostUrl?: string;
 }
 
 interface SEOLink {
@@ -321,20 +322,25 @@ export default function BulkCreatePage() {
         ));
 
         // Publish or schedule
+        let wpPostUrl: string | undefined;
+        console.log('Article scheduledAt:', article.scheduledAt);
+        console.log('Schedule mode:', scheduleMode);
+        console.log('First article now:', firstArticleNow);
         if (!article.scheduledAt) {
           // Publish immediately
-          await articlesApi.publish(articleId, 'publish');
+          console.log('Publishing immediately...');
+          const publishRes = await articlesApi.publish(articleId, 'publish');
+          wpPostUrl = publishRes.data?.wpPostUrl;
         } else {
-          // Schedule for later (save as draft with scheduled time)
-          await articlesApi.update(articleId, {
-            scheduledAt: article.scheduledAt.toISOString(),
-            status: 'SCHEDULED',
-          });
+          // Schedule for later - publish to WordPress with 'future' status
+          console.log('Scheduling for:', article.scheduledAt.toISOString());
+          const publishRes = await articlesApi.publish(articleId, 'future', article.scheduledAt.toISOString());
+          wpPostUrl = publishRes.data?.wpPostUrl;
         }
 
         // Mark as done
         setArticles(prev => prev.map((a, idx) =>
-          idx === i ? { ...a, status: 'done' } : a
+          idx === i ? { ...a, status: 'done', wpPostUrl } : a
         ));
         successCount++;
 
@@ -1083,6 +1089,18 @@ export default function BulkCreatePage() {
                                   <Calendar className="h-3 w-3" />
                                   <span>{formatScheduleTime(scheduledTime)}</span>
                                 </div>
+                                {articleItem?.wpPostUrl && (
+                                  <a
+                                    href={articleItem.wpPostUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 text-xs mt-1 hover:underline"
+                                    style={{ color: '#2563eb' }}
+                                  >
+                                    <Link2 className="h-3 w-3" />
+                                    <span className="truncate max-w-[200px]">{articleItem.wpPostUrl}</span>
+                                  </a>
+                                )}
                                 {articleItem?.error && (
                                   <p className="text-xs mt-1" style={{ color: '#ef4444' }}>
                                     {articleItem.error}
