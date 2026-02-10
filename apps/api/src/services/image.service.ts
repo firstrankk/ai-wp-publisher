@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
 import fs from 'fs';
 import path from 'path';
 
@@ -18,7 +19,8 @@ interface GenerateImageParams {
 }
 
 export class ImageService {
-  private fontFilePath: string = '';
+  private fontFamily: string = 'NotoSansThai';
+  private fontReady: boolean = false;
 
   constructor() {
     const fontPaths = [
@@ -28,14 +30,19 @@ export class ImageService {
 
     for (const p of fontPaths) {
       if (fs.existsSync(p)) {
-        this.fontFilePath = p;
-        console.log(`Thai font loaded from: ${p}`);
+        const result = GlobalFonts.registerFromPath(p, this.fontFamily);
+        if (result) {
+          console.log(`Thai font registered from: ${p}`);
+          this.fontReady = true;
+        } else {
+          console.warn(`Failed to register font from: ${p}`);
+        }
         break;
       }
     }
 
-    if (!this.fontFilePath) {
-      console.warn('Thai font not found, text rendering may fail');
+    if (!this.fontReady) {
+      console.warn('Thai font not found or failed to register, text rendering may use fallback font');
     }
   }
 
@@ -51,7 +58,7 @@ export class ImageService {
       backgroundImage,
     } = params;
 
-    // 1. Create background
+    // 1. Create background using sharp (SVG gradient or user image)
     let bgBuffer: Buffer;
 
     if (backgroundImage) {
@@ -61,7 +68,6 @@ export class ImageService {
           : backgroundImage;
         const rawBg = Buffer.from(base64Data, 'base64');
 
-        // Resize + dark overlay
         bgBuffer = await sharp(rawBg)
           .resize(width, height, { fit: 'cover' })
           .composite([{
@@ -84,58 +90,85 @@ export class ImageService {
       bgBuffer = await this.createGradientBackground(width, height, backgroundColor, gradient);
     }
 
-    // 2. Create text overlay using sharp text API (uses Pango + fontfile directly)
-    const pangoSize = fontSize * 1024; // Pango uses 1/1024 point units
-    const escapedTitle = this.escapePango(title);
+    // 2. Create text overlay using @napi-rs/canvas
+    const textBuffer = this.renderTextCanvas(title, width, height, fontSize, textColor);
 
-    const textOptions: sharp.CreateText = {
-      text: `<span foreground="${textColor}" size="${pangoSize}">${escapedTitle}</span>`,
-      width: Math.round(width * 0.85),
-      align: 'centre',
-      rgba: true,
-      dpi: 72,
-    };
-
-    if (this.fontFilePath) {
-      textOptions.fontfile = this.fontFilePath;
-    }
-
-    const textBuffer = await sharp({ text: textOptions }).png().toBuffer();
-
-    // Get text dimensions for centering
-    const textMeta = await sharp(textBuffer).metadata();
-    const textW = textMeta.width || 0;
-    const textH = textMeta.height || 0;
-
-    // 3. Create drop shadow
-    const shadowBuffer = await sharp(textBuffer)
-      .blur(4)
-      .modulate({ brightness: 0 })
-      .ensureAlpha(0.4)
-      .png()
-      .toBuffer();
-
-    // 4. Composite: background + shadow + text (centered)
-    const centerX = Math.round((width - textW) / 2);
-    const centerY = Math.round((height - textH) / 2);
-
+    // 3. Composite background + text using sharp
     const imageBuffer = await sharp(bgBuffer)
-      .composite([
-        {
-          input: shadowBuffer,
-          left: centerX + 2,
-          top: centerY + 3,
-        },
-        {
-          input: textBuffer,
-          left: centerX,
-          top: centerY,
-        },
-      ])
+      .composite([{
+        input: textBuffer,
+        left: 0,
+        top: 0,
+      }])
       .png()
       .toBuffer();
 
     return `data:image/png;base64,${imageBuffer.toString('base64')}`;
+  }
+
+  private renderTextCanvas(
+    title: string,
+    width: number,
+    height: number,
+    fontSize: number,
+    textColor: string,
+  ): Buffer {
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+
+    // Setup font
+    const fontName = this.fontReady ? this.fontFamily : 'Arial';
+    ctx.font = `bold ${fontSize}px ${fontName}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Word wrap
+    const maxWidth = width * 0.85;
+    const lines = this.wrapText(ctx, title, maxWidth);
+    const lineHeight = fontSize * 1.4;
+    const totalHeight = lines.length * lineHeight;
+    const startY = (height - totalHeight) / 2 + lineHeight / 2;
+
+    // Draw drop shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], width / 2 + 2, startY + i * lineHeight + 3);
+    }
+
+    // Draw text
+    ctx.fillStyle = textColor;
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], width / 2, startY + i * lineHeight);
+    }
+
+    return Buffer.from(canvas.toBuffer('image/png'));
+  }
+
+  private wrapText(
+    ctx: ReturnType<ReturnType<typeof createCanvas>['getContext']>,
+    text: string,
+    maxWidth: number,
+  ): string[] {
+    const words = text.split(/(\s+)/);
+    const lines: string[] = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      const testLine = currentLine + word;
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth && currentLine.length > 0) {
+        lines.push(currentLine.trim());
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
+
+    return lines.slice(0, 4);
   }
 
   private async createGradientBackground(
@@ -180,13 +213,6 @@ export class ImageService {
     </svg>`;
 
     return sharp(Buffer.from(bgSvg)).png().toBuffer();
-  }
-
-  private escapePango(text: string): string {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
   }
 
   private darkenColor(hex: string, percent: number): string {

@@ -13,6 +13,7 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.91",
     "@prisma/client": "^5.10.0",
     "@repo/shared": "*",
     "bcryptjs": "^2.4.3",

@@ -41,8 +41,8 @@ RUN addgroup --system --gid 1001 appgroup && \
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
 
-# Install production dependencies only
-RUN npm ci --workspace=api --omit=dev --ignore-scripts
+# Install production dependencies (no --ignore-scripts: @napi-rs/canvas needs native bindings)
+RUN npm ci --workspace=api --omit=dev
 
 # Copy Prisma schema and generate client for production
 COPY apps/api/prisma/ apps/api/prisma/
@@ -54,7 +54,7 @@ COPY --from=builder /app/packages/shared/ packages/shared/
 # Copy built files
 COPY --from=builder /app/apps/api/dist/ apps/api/dist/
 
-# Copy Thai fonts (used by sharp text API via fontfile parameter)
+# Copy Thai fonts (used by @napi-rs/canvas for text rendering)
 COPY apps/api/fonts/ apps/api/fonts/
 
 USER appuser
