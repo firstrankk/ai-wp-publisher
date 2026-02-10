@@ -28,11 +28,7 @@ RUN cd apps/api && npm run build
 # ---- Runner Stage ----
 FROM node:20-alpine AS runner
 
-RUN apk add --no-cache openssl fontconfig
-
-# Install Thai fonts for cover image generation
-COPY apps/api/fonts/ /usr/share/fonts/noto-thai/
-RUN fc-cache -fv
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
@@ -57,6 +53,9 @@ COPY --from=builder /app/packages/shared/ packages/shared/
 
 # Copy built files
 COPY --from=builder /app/apps/api/dist/ apps/api/dist/
+
+# Copy Thai fonts for cover image generation
+COPY apps/api/fonts/ apps/api/fonts/
 
 USER appuser
 

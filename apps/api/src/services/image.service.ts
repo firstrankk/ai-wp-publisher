@@ -1,4 +1,6 @@
 import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
 
 interface GenerateImageParams {
   title: string;
@@ -16,6 +18,52 @@ interface GenerateImageParams {
 }
 
 export class ImageService {
+  private fontBase64: string = '';
+
+  constructor() {
+    // Load Thai font as base64 for embedding in SVG
+    const fontPaths = [
+      path.join(__dirname, '../../fonts/NotoSansThai-Bold.ttf'),
+      path.join(process.cwd(), 'apps/api/fonts/NotoSansThai-Bold.ttf'),
+    ];
+
+    for (const fontPath of fontPaths) {
+      try {
+        if (fs.existsSync(fontPath)) {
+          this.fontBase64 = fs.readFileSync(fontPath).toString('base64');
+          console.log(`Loaded Thai font from: ${fontPath}`);
+          break;
+        }
+      } catch {
+        // Try next path
+      }
+    }
+
+    if (!this.fontBase64) {
+      console.warn('Thai font not found, Thai text may not render correctly');
+    }
+  }
+
+  private getFontFaceDef(): string {
+    if (!this.fontBase64) return '';
+    return `
+      <style type="text/css">
+        @font-face {
+          font-family: 'NotoSansThai';
+          src: url('data:font/truetype;base64,${this.fontBase64}') format('truetype');
+          font-weight: bold;
+          font-style: normal;
+        }
+      </style>
+    `;
+  }
+
+  private getFontFamily(): string {
+    return this.fontBase64
+      ? "'NotoSansThai', 'Noto Sans Thai', Arial, sans-serif"
+      : "Arial, sans-serif";
+  }
+
   async generateFeaturedImage(params: GenerateImageParams): Promise<string> {
     const {
       title,
@@ -28,6 +76,9 @@ export class ImageService {
       backgroundImage,
     } = params;
 
+    const fontFamily = this.getFontFamily();
+    const fontFaceDef = this.getFontFaceDef();
+
     // Wrap text to multiple lines
     const maxCharsPerLine = Math.floor(width / (fontSize * 0.6));
     const lines = this.wrapText(title, maxCharsPerLine);
@@ -39,7 +90,7 @@ export class ImageService {
     const textElements = lines
       .map((line, index) => {
         const y = startY + index * lineHeight;
-        return `<text x="50%" y="${y}" text-anchor="middle" font-family="'Noto Sans Thai', Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="${textColor}">${this.escapeXml(line)}</text>`;
+        return `<text x="50%" y="${y}" text-anchor="middle" font-family="${fontFamily}" font-size="${fontSize}" font-weight="bold" fill="${textColor}">${this.escapeXml(line)}</text>`;
       })
       .join('');
 
@@ -93,6 +144,7 @@ export class ImageService {
         const textOnlySvg = `
           <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
             <defs>
+              ${fontFaceDef}
               <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.5"/>
               </filter>
@@ -136,6 +188,7 @@ export class ImageService {
     const svg = `
       <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
         <defs>
+          ${fontFaceDef}
           ${gradientDef}
           <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.3"/>
