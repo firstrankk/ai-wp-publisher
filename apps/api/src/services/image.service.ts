@@ -39,7 +39,7 @@ export class ImageService {
     const textElements = lines
       .map((line, index) => {
         const y = startY + index * lineHeight;
-        return `<text x="50%" y="${y}" text-anchor="middle" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="${textColor}">${this.escapeXml(line)}</text>`;
+        return `<text x="50%" y="${y}" text-anchor="middle" font-family="'Noto Sans Thai', Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="${textColor}">${this.escapeXml(line)}</text>`;
       })
       .join('');
 
