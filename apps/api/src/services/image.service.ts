@@ -1,4 +1,6 @@
 import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
 
 interface GenerateImageParams {
   title: string;
@@ -16,6 +18,27 @@ interface GenerateImageParams {
 }
 
 export class ImageService {
+  private fontFilePath: string = '';
+
+  constructor() {
+    const fontPaths = [
+      path.join(__dirname, '../../fonts/NotoSansThai-Bold.ttf'),
+      path.join(process.cwd(), 'apps/api/fonts/NotoSansThai-Bold.ttf'),
+    ];
+
+    for (const p of fontPaths) {
+      if (fs.existsSync(p)) {
+        this.fontFilePath = p;
+        console.log(`Thai font loaded from: ${p}`);
+        break;
+      }
+    }
+
+    if (!this.fontFilePath) {
+      console.warn('Thai font not found, text rendering may fail');
+    }
+  }
+
   async generateFeaturedImage(params: GenerateImageParams): Promise<string> {
     const {
       title,
@@ -28,22 +51,99 @@ export class ImageService {
       backgroundImage,
     } = params;
 
-    // Wrap text to multiple lines
-    const maxCharsPerLine = Math.floor(width / (fontSize * 0.6));
-    const lines = this.wrapText(title, maxCharsPerLine);
-    const lineHeight = fontSize * 1.3;
-    const totalTextHeight = lines.length * lineHeight;
-    const startY = (height - totalTextHeight) / 2 + fontSize;
+    // 1. Create background
+    let bgBuffer: Buffer;
 
-    // Create text elements for SVG
-    const textElements = lines
-      .map((line, index) => {
-        const y = startY + index * lineHeight;
-        return `<text x="50%" y="${y}" text-anchor="middle" font-family="'Noto Sans Thai', Arial, sans-serif" font-size="${fontSize}" font-weight="bold" fill="${textColor}">${this.escapeXml(line)}</text>`;
-      })
-      .join('');
+    if (backgroundImage) {
+      try {
+        const base64Data = backgroundImage.includes(',')
+          ? backgroundImage.split(',')[1]
+          : backgroundImage;
+        const rawBg = Buffer.from(base64Data, 'base64');
 
-    // Build gradient definition
+        // Resize + dark overlay
+        bgBuffer = await sharp(rawBg)
+          .resize(width, height, { fit: 'cover' })
+          .composite([{
+            input: {
+              create: {
+                width,
+                height,
+                channels: 4,
+                background: { r: 0, g: 0, b: 0, alpha: 0.5 },
+              },
+            },
+          }])
+          .png()
+          .toBuffer();
+      } catch (error) {
+        console.error('Failed to process background image:', error);
+        bgBuffer = await this.createGradientBackground(width, height, backgroundColor, gradient);
+      }
+    } else {
+      bgBuffer = await this.createGradientBackground(width, height, backgroundColor, gradient);
+    }
+
+    // 2. Create text overlay using sharp text API (uses Pango + fontfile directly)
+    const pangoSize = fontSize * 1024; // Pango uses 1/1024 point units
+    const escapedTitle = this.escapePango(title);
+
+    const textOptions: sharp.CreateText = {
+      text: `<span foreground="${textColor}" size="${pangoSize}">${escapedTitle}</span>`,
+      width: Math.round(width * 0.85),
+      align: 'centre',
+      rgba: true,
+      dpi: 72,
+    };
+
+    if (this.fontFilePath) {
+      textOptions.fontfile = this.fontFilePath;
+    }
+
+    const textBuffer = await sharp({ text: textOptions }).png().toBuffer();
+
+    // Get text dimensions for centering
+    const textMeta = await sharp(textBuffer).metadata();
+    const textW = textMeta.width || 0;
+    const textH = textMeta.height || 0;
+
+    // 3. Create drop shadow
+    const shadowBuffer = await sharp(textBuffer)
+      .blur(4)
+      .modulate({ brightness: 0 })
+      .ensureAlpha(0.4)
+      .png()
+      .toBuffer();
+
+    // 4. Composite: background + shadow + text (centered)
+    const centerX = Math.round((width - textW) / 2);
+    const centerY = Math.round((height - textH) / 2);
+
+    const imageBuffer = await sharp(bgBuffer)
+      .composite([
+        {
+          input: shadowBuffer,
+          left: centerX + 2,
+          top: centerY + 3,
+        },
+        {
+          input: textBuffer,
+          left: centerX,
+          top: centerY,
+        },
+      ])
+      .png()
+      .toBuffer();
+
+    return `data:image/png;base64,${imageBuffer.toString('base64')}`;
+  }
+
+  private async createGradientBackground(
+    width: number,
+    height: number,
+    backgroundColor: string,
+    gradient?: GenerateImageParams['gradient'],
+  ): Promise<Buffer> {
     let gradientDef = '';
     let backgroundFill = '';
 
@@ -65,7 +165,6 @@ export class ImageService {
       }
       backgroundFill = 'url(#grad)';
     } else {
-      // Default simple gradient from backgroundColor
       gradientDef = `
         <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:${backgroundColor};stop-opacity:1" />
@@ -75,141 +174,33 @@ export class ImageService {
       backgroundFill = 'url(#grad)';
     }
 
-    // If background image is provided, use custom background
-    if (backgroundImage) {
-      try {
-        // Extract base64 data
-        const base64Data = backgroundImage.includes(',')
-          ? backgroundImage.split(',')[1]
-          : backgroundImage;
-        const bgBuffer = Buffer.from(base64Data, 'base64');
+    const bgSvg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>${gradientDef}</defs>
+      <rect width="100%" height="100%" fill="${backgroundFill}"/>
+    </svg>`;
 
-        // Resize background image
-        const resizedBg = await sharp(bgBuffer)
-          .resize(width, height, { fit: 'cover' })
-          .toBuffer();
-
-        // Create text-only SVG with transparent background
-        const textOnlySvg = `
-          <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.5"/>
-              </filter>
-            </defs>
-            <g filter="url(#shadow)">
-              ${textElements}
-            </g>
-          </svg>
-        `;
-
-        const textOverlay = await sharp(Buffer.from(textOnlySvg))
-          .png()
-          .toBuffer();
-
-        // Composite: background + dark overlay + text
-        const imageBuffer = await sharp(resizedBg)
-          .composite([
-            {
-              input: {
-                create: {
-                  width,
-                  height,
-                  channels: 4,
-                  background: { r: 0, g: 0, b: 0, alpha: 0.5 },
-                },
-              },
-            },
-            { input: textOverlay },
-          ])
-          .png()
-          .toBuffer();
-
-        return `data:image/png;base64,${imageBuffer.toString('base64')}`;
-      } catch (error) {
-        console.error('Failed to process background image:', error);
-        // Fall back to gradient background below
-      }
-    }
-
-    // Create SVG with gradient/solid background
-    const svg = `
-      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          ${gradientDef}
-          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.3"/>
-          </filter>
-        </defs>
-        <rect width="100%" height="100%" fill="${backgroundFill}"/>
-        <g filter="url(#shadow)">
-          ${textElements}
-        </g>
-      </svg>
-    `;
-
-    // Convert SVG to PNG using sharp
-    const imageBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-
-    // Return as base64
-    return `data:image/png;base64,${imageBuffer.toString('base64')}`;
+    return sharp(Buffer.from(bgSvg)).png().toBuffer();
   }
 
-  private wrapText(text: string, maxCharsPerLine: number): string[] {
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let currentLine = '';
-
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-
-      if (testLine.length <= maxCharsPerLine) {
-        currentLine = testLine;
-      } else {
-        if (currentLine) {
-          lines.push(currentLine);
-        }
-        currentLine = word;
-      }
-    }
-
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-
-    // Limit to 4 lines max
-    return lines.slice(0, 4);
-  }
-
-  private escapeXml(text: string): string {
+  private escapePango(text: string): string {
     return text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+      .replace(/>/g, '&gt;');
   }
 
   private darkenColor(hex: string, percent: number): string {
-    // Remove # if present
     hex = hex.replace('#', '');
-
-    // Parse RGB
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
-
-    // Darken
     const factor = 1 - percent / 100;
     const newR = Math.round(r * factor);
     const newG = Math.round(g * factor);
     const newB = Math.round(b * factor);
-
-    // Convert back to hex
     return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
   }
 
-  // Generate with different preset styles
   async generateWithPreset(
     title: string,
     preset: 'modern' | 'classic' | 'vibrant' | 'minimal'
